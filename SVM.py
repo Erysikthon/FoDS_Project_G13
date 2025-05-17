@@ -9,8 +9,8 @@ from sklearn.metrics import accuracy_score, classification_report, confusion_mat
 import shap
 import matplotlib.pyplot as plt
 import seaborn as sns
-from Data_Preparation import df
-from Data_Preparation import *
+
+from Data_Overview import *
 import os
 
 # --- Parameters --------
