@@ -14,6 +14,7 @@ import seaborn as sns
 from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.feature_selection import RFE
 from sklearn.feature_selection import RFECV
+import os
 
 
 
@@ -234,6 +235,11 @@ print(f"Selected features: {list(rfe_selected_features)}")
 
 print(df_performance)
 
+
+
+############### PLOTS #########################
+os.makedirs('output', exist_ok=True)
+
 #Accuracy
 df_performance[['accuracy']].plot(kind='bar', figsize=(15, 12))
 plt.title('Performance Comparison of Models with All vs Selected Features')
@@ -242,6 +248,7 @@ plt.xticks(rotation=45)
 plt.ylim([0, 1])
 plt.grid(True, axis='y', linestyle='--')
 plt.show()
+#plt.savefig('../output/LR_Accuracy.png')
 
 
 #F1-Score
@@ -299,7 +306,7 @@ plt.title('ROC Curve Comparison')
 plt.legend(loc="lower right")
 plt.grid(True, linestyle='--', alpha=0.6)
 plt.tight_layout()
-plt.show()
+plt.savefig("output/LR_ROC_Curve.png")
 
 
 #Precision
