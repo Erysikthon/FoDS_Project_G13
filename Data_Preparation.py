@@ -5,12 +5,11 @@ from sklearn.metrics import roc_curve, confusion_matrix, auc
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.impute import KNNImputer
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+
 
 df = pd.read_csv("data/kzp-2008-2020-timeseries.csv", encoding="latin-1")
-
-####################### DATA OVERVIEW ##########################################################################
-print('Shape of initial data set: ', df.shape)
-print('Data types;', df.dtypes.unique())
 
 #SPECIFIY YEAR
 current_year = "all"       #change this for individual year analysis, for all year -> "all"
@@ -81,21 +80,6 @@ for col in cat_features:  # Iterate through each categorical column
     print(f'{col}: {data[col].nunique()} unique values')
 
 
-#MISSING DATA OVERVIEW
-#Percentage of missing values in Label column
-missing_percentage_label = (data[label].isnull().sum() / len(data[label])) * 100
-print("Missing percentage Label:\n", missing_percentage_label)
-
-#Percentage of missing values per categorical column
-missing_percentage_cat = (data[cat_features].isnull().sum() / len(data[cat_features])) * 100
-print("Missing percentage Categorical columns:\n", missing_percentage_cat)
-
-#Percentage of missing values per numeric column
-missing_percentage_num = (data[num_features].isnull().sum() / len(data[num_features])) * 100
-print("Missing percentage numeric columns:\n", missing_percentage_num)
-
-
-
 #Dropping Missing Data in label column
 data = data.dropna(subset=['FiErg'])
 
@@ -109,3 +93,46 @@ print('Shape of modified data set;', data.shape)
 #LABEL BALANCE CHECK
 print(data[label].value_counts(normalize=True))
 
+####################### NEW SPLITTING DATA ####################################################
+X = data[features]
+y = data[label]
+
+yeares = data["JAHR"]
+
+#for all years
+if current_year == "all":
+    stratify_col = y.astype(str) + "_" + yeares.astype(str)
+
+else:
+    stratify_col = y
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=10, stratify= stratify_col)  #for all years also stratify years
+
+
+############################ NEW MISSING DATA HANDLING ###########################################
+
+#Filling Categorical Columns
+for n in cat_features:
+    X_train[n] = X_train[n].fillna("NA")
+    X_test[n] = X_test[n].fillna("NA")
+
+#Filling Numeric Columns
+for i in X_train[num_features]:
+    X_train[i] = X_train[i].fillna(X_train[i].mean())
+    X_test[i] = X_test[i].fillna(X_train[i].mean())      # To ensure consistency with X_train's mean
+
+
+X_train[cat_features] = X_train[cat_features].astype('category')
+X_test[cat_features] = X_test[cat_features].astype('category')
+
+######################### NEW ONE HOT ENCODING ##################################################################
+X_train = pd.get_dummies(X_train, columns=cat_features, drop_first=True)
+
+X_test = pd.get_dummies(X_test, columns=cat_features, drop_first=True)
+X_test = X_test.reindex(columns=X_train.columns, fill_value=0)
+
+####################### NEW SCALING (after splitting!!) ###############################################################
+sc = StandardScaler()
+X_train[num_features] = sc.fit_transform(X_train[num_features])
+X_test[num_features]  = sc.transform(X_test[num_features])
