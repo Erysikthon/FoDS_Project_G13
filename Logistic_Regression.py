@@ -145,7 +145,7 @@ print(df_performance)
 
 #L1 REGULARIZATION
 param_grid = {
-    "C": [0.01, 0.1],  # Regularization strength
+    "C": [0.01, 0.1, 1.0],  # Regularization strength
     "penalty": ["l1"],  # L1 regularization
     "solver": ["liblinear"]  # Solver for logistic regression
 }
@@ -187,7 +187,7 @@ print(f"Selected features: {L1_selected_features}")
 #L2 REGULARIZATION
 
 param_grid = {
-    "C": [0.01, 0.1],  # Regularization strength
+    "C": [0.01, 0.1, 1.0],  # Regularization strength
     "penalty": ["l2"],  #L2 regularization
     "solver": ["liblinear"]  # Solver for logistic regression
 }
@@ -223,7 +223,7 @@ df_performance.loc['LR (train,L2)', :] = eval_Performance(y_train, X_train, clf_
 
 #Recursive Feature Eliminiation with Cross-Validation
 
-log_reg = LogisticRegression(class_weight='balanced', solver="liblinear", random_state=10, C=0.1)
+log_reg = LogisticRegression(class_weight='balanced', solver="liblinear", random_state=10, C=1.0)
 
 rfe_cv = RFECV(estimator=log_reg, step=1, cv=5, scoring='roc_auc')
 rfe_cv.fit(X_train, y_train)

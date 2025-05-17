@@ -13,7 +13,7 @@ print('Shape of initial data set: ', df.shape)
 print('Data types;', df.dtypes.unique())
 
 #SPECIFIY YEAR
-current_year = 2011       #change this for individual year analysis, for all year -> "all"
+current_year = "all"       #change this for individual year analysis, for all year -> "all"
 
 if current_year != "all":
     data =df[df["JAHR"]==current_year].copy()
