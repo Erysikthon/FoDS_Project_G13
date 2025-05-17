@@ -20,9 +20,53 @@ import os
 
 
 #Transforming object col into category
-data[cat_features] = data[cat_features].astype('category')
+#data[cat_features] = data[cat_features].astype('category')
+
+####################### NEW SPLITTING DATA ####################################################
+X = data[features]
+y = data[label]
+
+yeares = data["JAHR"]
+
+#for all years
+if current_year == "all":
+    stratify_col = y.astype(str) + "_" + yeares.astype(str)
+
+else:
+    stratify_col = y
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=10, stratify= stratify_col)  #for all years also stratify years
 
 
+############################ NEW MISSING DATA HANDLING ###########################################
+
+#Filling Categorical Columns
+for n in cat_features:
+    X_train[n] = X_train[n].fillna("NA")
+    X_test[n] = X_test[n].fillna("NA")
+
+#Filling Numeric Columns
+for i in X_train[num_features]:
+    X_train[i] = X_train[i].fillna(X_train[i].mean())
+    X_test[i] = X_test[i].fillna(X_train[i].mean())      # To ensure consistency with X_train's mean
+
+
+X_train[cat_features] = X_train[cat_features].astype('category')
+X_test[cat_features] = X_test[cat_features].astype('category')
+
+######################### NEW ONE HOT ENCODING ##################################################################
+X_train = pd.get_dummies(X_train, columns=cat_features, drop_first=True)
+
+X_test = pd.get_dummies(X_test, columns=cat_features, drop_first=True)
+X_test = X_test.reindex(columns=X_train.columns, fill_value=0)
+
+####################### NEW SCALING (after splitting!!) ###############################################################
+sc = StandardScaler()
+X_train[num_features] = sc.fit_transform(X_train[num_features])
+X_test[num_features]  = sc.transform(X_test[num_features])
+
+""""
 ######################## ONE HOT ENCODING ##############################################################################
 features_encoded = pd.get_dummies(data[features], columns=cat_features, drop_first=True)
 cat_features_encoded = [col for col in features_encoded.columns if any(orig in col for orig in cat_features)]
@@ -63,7 +107,7 @@ for j in X_train[num_features]:  # To ensure consistency with X_train's mean
 sc = StandardScaler()
 X_train[num_features] = sc.fit_transform(X_train[num_features])
 X_test[num_features]  = sc.transform(X_test[num_features])
-
+"""
 
 ##################### EVALUATION METRICS ###############################################################################
 def eval_Performance(y_eval, X_eval, clf, clf_name = 'My Classifier'):
@@ -145,7 +189,7 @@ print(df_performance)
 
 #L1 REGULARIZATION
 param_grid = {
-    "C": [0.01, 0.1, 1.0],  # Regularization strength
+    "C": [0.01, 0.1, 1.0, 10.0],  # Regularization strength
     "penalty": ["l1"],  # L1 regularization
     "solver": ["liblinear"]  # Solver for logistic regression
 }
@@ -187,7 +231,7 @@ print(f"Selected features: {L1_selected_features}")
 #L2 REGULARIZATION
 
 param_grid = {
-    "C": [0.01, 0.1, 1.0],  # Regularization strength
+    "C": [0.01, 0.1, 1.0, 10.0],  # Regularization strength
     "penalty": ["l2"],  #L2 regularization
     "solver": ["liblinear"]  # Solver for logistic regression
 }
@@ -223,7 +267,7 @@ df_performance.loc['LR (train,L2)', :] = eval_Performance(y_train, X_train, clf_
 
 #Recursive Feature Eliminiation with Cross-Validation
 
-log_reg = LogisticRegression(class_weight='balanced', solver="liblinear", random_state=10, C=1.0)
+log_reg = LogisticRegression(class_weight='balanced', solver="liblinear", random_state=10)
 
 rfe_cv = RFECV(estimator=log_reg, step=1, cv=5, scoring='roc_auc')
 rfe_cv.fit(X_train, y_train)

@@ -28,12 +28,16 @@ features = ["KT","Inst", "Adr",  "Ort", "Typ", "RWStatus", "Akt", "SL", "WB", "A
             "pPatWAU","pPatWAK", "pPatLKP","pPatHOK","PersA","PersP","PersMT","PersT","PersAFall","PersPFall","PersMTFall","PersTFall","AnzBelA","AnzBelP (nur ab KZP2010)"]
 
 #for all years
-features.append("JAHR")
-data["JAHR"] = data["JAHR"].astype("category")
+#features.append("JAHR")
+data["JAHR"] = data["JAHR"].astype("object")
 
 
 #New data declaration
-data = data[features + [label]]
+if current_year == "all":
+    data = data[features + [label] + ["JAHR"]]
+else:
+    data = data[features + [label]]
+
 print("New data set shape:", data.shape)
 
 #DROPPING COLUMNS
@@ -50,8 +54,8 @@ data = data.drop(columns=["Ort"])
 features.remove("Ort")
 
 #Dropping SA !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-data = data.drop(columns=["SA"])
-features.remove("SA")
+#data = data.drop(columns=["SA"])
+#features.remove("SA")
 
 #Dropping Columns with 100% Missing Data
 #columns to drop

@@ -10,6 +10,7 @@ import shap
 import matplotlib.pyplot as plt
 import seaborn as sns
 from Data_Preparation import df
+from Data_Preparation import *
 import os
 
 # --- Parameters --------
@@ -17,7 +18,9 @@ tt_size = 0.2
 n_ftrs = 10
 #yr = 2011
 model_type = "svc"  # Options: 'svc', 'hgb'
-data = df.copy()
+
+
+#data = df.copy()
 
 md_choice = input('Which model do you prefer? (default is svc) ')
 
@@ -42,7 +45,7 @@ for i in md_choice.split(' '):
 #data = df.copy()
 #data = df[df["JAHR"]==yr].copy()
 
-
+"""
 label = "FiErg"
 features = ["KT", "Inst", "Adr", "Ort", "Typ", "RWStatus", "Akt", "SL", "WB", "AnzStand",
             "SA", "PtageStatT", "AustStatT", "NeugStatT", "Ops", "Gebs", "CMIb", "CMIn",
@@ -63,11 +66,12 @@ if "AnzBelP (nur ab KZP2010)" in data.columns:
 
 # Binary target
 data[label] = (data[label] > 0).astype(int)
+"""
 
 # Split
 X = data[features]
 y = data[label]
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=tt_size, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=tt_size, random_state=42) #stratifying ???????????????????????????????????????????????????????????
 
 # Feature types
 numerical_features = X.select_dtypes(include=["int64", "float64"]).columns.tolist()
