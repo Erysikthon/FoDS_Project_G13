@@ -7,10 +7,57 @@ from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.metrics import roc_curve, auc
 from Data_Preparation import *
 
+####################### SPLITTING DATA ####################################################
+X = data[features]
+y = data[label]
+
+yeares = data["JAHR"]
+
+#for all years
+if current_year == "all":
+    stratify_col = y.astype(str) + "_" + yeares.astype(str)
+
+else:
+    stratify_col = y
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=10, stratify= stratify_col)  #for all years also stratify years
+
+
+############################ MISSING DATA HANDLING ###########################################
+
+#Filling Categorical Columns
+for n in cat_features:
+    X_train[n] = X_train[n].fillna("NA")
+    X_test[n] = X_test[n].fillna("NA")
+
+#Filling Numeric Columns
+for i in X_train[num_features]:
+    X_train[i] = X_train[i].fillna(X_train[i].mean())
+    X_test[i] = X_test[i].fillna(X_train[i].mean())      # To ensure consistency with X_train's mean
+
+
+X_train[cat_features] = X_train[cat_features].astype('category')
+X_test[cat_features] = X_test[cat_features].astype('category')
+
+######################### ONE HOT ENCODING ##################################################################
+X_train = pd.get_dummies(X_train, columns=cat_features, drop_first=True)
+
+X_test = pd.get_dummies(X_test, columns=cat_features, drop_first=True)
+X_test = X_test.reindex(columns=X_train.columns, fill_value=0)
+
+#######################SCALING (not necessary for RF but makes comparison to other models easier) ###################
+sc = StandardScaler()
+X_train[num_features] = sc.fit_transform(X_train[num_features])
+X_test[num_features]  = sc.transform(X_test[num_features])
+
+
+################ Random Forest Model ####################################################
+
 Random_Forest = RandomForestClassifier(class_weight="balanced",random_state=42)
 Random_Forest.fit(X_train, y_train)
 
-#################### Model Prediction (Base RF Model) #######################################################
+
 y_pred = Random_Forest.predict(X_test)
 y_pred_proba = Random_Forest.predict_proba(X_test)[:, 1]
 
@@ -28,7 +75,7 @@ plt.show()
 fp_rates, tp_rates, _ = roc_curve(y_test, y_pred_proba)
 roc_auc = auc(fp_rates, tp_rates)
 plt.figure()
-plt.plot(fp_rates, tp_rates, label='ROC curve (area = {:.2f})'.format(roc_auc))
+plt.plot(fp_rates, tp_rates, label='ROC curve (area = {:.3f})'.format(roc_auc))
 plt.plot([0, 1], [0, 1], 'r--')
 plt.xlim([0.0, 1.0])
 plt.ylim([0.0, 1.05])
@@ -40,12 +87,17 @@ plt.savefig('output/RF_ROC.png')
 
 
 #Model Evaluation
+print("Classification Report RF:")
 print(classification_report(y_test, y_pred))
 accuracy = accuracy_score(y_test, y_pred)
 #Import f1 score
 f1 = f1_score(y_test, y_pred)
 print(f"Accuracy: {accuracy:.4f}")
 print(f"F1 Score: {f1:.4f}")
+fp_rates, tp_rates, _ = roc_curve(y_test, y_pred_proba)
+auc_score = auc(fp_rates, tp_rates)
+print(f"AUC Score: {auc_score:.4f}")
+
 
 ######################## Hyper Parameter Tuning ##############################################################
 # n_estimator tuning
@@ -81,7 +133,7 @@ y_pred_proba = Random_Forest.predict_proba(X_test)[:, 1]
 fp_rates, tp_rates, _ = roc_curve(y_test, y_pred_proba)
 roc_auc = auc(fp_rates, tp_rates)
 plt.figure()
-plt.plot(fp_rates, tp_rates, label='ROC curve (area = {:.2f})'.format(roc_auc))
+plt.plot(fp_rates, tp_rates, label='ROC curve (area = {:.3f})'.format(roc_auc))
 plt.plot([0, 1], [0, 1], 'r--')
 plt.xlim([0.0, 1.0])
 plt.ylim([0.0, 1.05])
@@ -113,7 +165,7 @@ print(df_importances.head(10))
                                                                                                         #maybe feature importance plot
 
 ####################################### RF with UVFS ########################################################
-UVFS_Selector = SelectKBest(score_func=f_classif, k=20) ############################## different k maybe?????????????????????
+UVFS_Selector = SelectKBest(score_func=f_classif, k=40) ############################## different k maybe?????????????????????
 X_UVFS = UVFS_Selector.fit_transform(X_train, y_train)
 X_UVFS_test = UVFS_Selector.transform(X_test)
 
@@ -160,7 +212,7 @@ y_pred_proba = rf_uvfs.predict_proba(X_UVFS_test)[:, 1]
 fp_rates, tp_rates, _ = roc_curve(y_test, y_pred_proba)
 roc_auc = auc(fp_rates, tp_rates)
 plt.figure()
-plt.plot(fp_rates, tp_rates, label='ROC curve (area = {:.2f})'.format(roc_auc))
+plt.plot(fp_rates, tp_rates, label='ROC curve (area = {:.3f})'.format(roc_auc))
 plt.plot([0, 1], [0, 1], 'r--')
 plt.xlim([0.0, 1.0])
 plt.ylim([0.0, 1.05])

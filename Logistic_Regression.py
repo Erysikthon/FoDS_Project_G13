@@ -22,7 +22,7 @@ import os
 #Transforming object col into category
 #data[cat_features] = data[cat_features].astype('category')
 
-####################### NEW SPLITTING DATA ####################################################
+####################### SPLITTING DATA ####################################################
 X = data[features]
 y = data[label]
 
@@ -39,7 +39,7 @@ X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=10, stratify= stratify_col)  #for all years also stratify years
 
 
-############################ NEW MISSING DATA HANDLING ###########################################
+############################  MISSING DATA HANDLING ###########################################
 
 #Filling Categorical Columns
 for n in cat_features:
@@ -55,13 +55,13 @@ for i in X_train[num_features]:
 X_train[cat_features] = X_train[cat_features].astype('category')
 X_test[cat_features] = X_test[cat_features].astype('category')
 
-######################### NEW ONE HOT ENCODING ##################################################################
+######################### ONE HOT ENCODING ##################################################################
 X_train = pd.get_dummies(X_train, columns=cat_features, drop_first=True)
 
 X_test = pd.get_dummies(X_test, columns=cat_features, drop_first=True)
 X_test = X_test.reindex(columns=X_train.columns, fill_value=0)
 
-####################### NEW SCALING (after splitting!!) ###############################################################
+#######################  SCALING (after splitting!!) ###############################################################
 sc = StandardScaler()
 X_train[num_features] = sc.fit_transform(X_train[num_features])
 X_test[num_features]  = sc.transform(X_test[num_features])
