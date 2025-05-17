@@ -8,7 +8,7 @@ from sklearn.impute import KNNImputer
 
 df = pd.read_csv("data/kzp-2008-2020-timeseries.csv", encoding="latin-1")
 
-####################### DATA OVERVIEW ###########################################################################
+####################### DATA OVERVIEW ##########################################################################
 print('Shape of initial data set: ', df.shape)
 print('Data types;', df.dtypes.unique())
 
