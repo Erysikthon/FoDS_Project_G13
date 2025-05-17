@@ -23,7 +23,7 @@ import os
 data[cat_features] = data[cat_features].astype('category')
 
 
-#ONE HOT ENCODING
+######################## ONE HOT ENCODING ##############################################################################
 features_encoded = pd.get_dummies(data[features], columns=cat_features, drop_first=True)
 cat_features_encoded = [col for col in features_encoded.columns if any(orig in col for orig in cat_features)]
 
@@ -39,12 +39,12 @@ if current_year == "all":
 
 
 
-#SPLITTIING DATA
+####################### SPLITTING DATA ################################################################################
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=10, stratify= stratify_col)  #for all years also stratify years
 
 
-#HANDLING MISSING DATA
+####################### HANDLING MISSING DATA #########################################################################
 
 #Filling Categorical Columns
 for n in cat_features_encoded:
@@ -59,13 +59,13 @@ for j in X_train[num_features]:  # To ensure consistency with X_train's mean
     X_test[j] = X_test[j].fillna(X_train[j].mean())
 
 
-#SCALING (after splitting!!)
+##################### SCALING (after splitting!!) ######################################################################
 sc = StandardScaler()
 X_train[num_features] = sc.fit_transform(X_train[num_features])
 X_test[num_features]  = sc.transform(X_test[num_features])
 
 
-#EVALUATION
+##################### EVALUATION METRICS ###############################################################################
 def eval_Performance(y_eval, X_eval, clf, clf_name = 'My Classifier'):
 
     y_pred = clf.predict(X_eval)
@@ -88,20 +88,20 @@ df_performance = pd.DataFrame(columns = ['tp','fp','tn','fn','accuracy', 'precis
 
 
 
-#MODEL TRAINING
+##################### MODEL TRAINING ##################################################################################
 clf_LR = LogisticRegression(random_state=10, class_weight='balanced')
 clf_LR.fit(X_train, y_train)
 
 df_performance.loc['LR (test)',:] = eval_Performance(y_test, X_test, clf_LR, clf_name ='LR')
 df_performance.loc['LR (train)',:] = eval_Performance(y_train, X_train, clf_LR, clf_name ='LR (train)')
 
-print("Total number of featuresj (LR):", X_train.shape[1])
+print("Total number of features (LR):", X_train.shape[1])
 
 
-#FEATURE SELECTION
+##################### FEATURE SELECTION ###############################################################################
 
 #Univariate FS
-UVFS_Selector = SelectKBest(score_func = f_classif, k=30)
+UVFS_Selector = SelectKBest(score_func = f_classif, k=20)
 
 X_UVFS = UVFS_Selector.fit_transform(X_train, y_train)
 X_UVFS_test = UVFS_Selector.transform(X_test)
@@ -246,7 +246,7 @@ print(df_performance)
 
 
 
-############### PLOTS #########################
+##################################### PLOTS ############################################################################
 os.makedirs('output', exist_ok=True)
 
 #Accuracy
