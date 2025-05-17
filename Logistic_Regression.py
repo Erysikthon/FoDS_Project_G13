@@ -95,11 +95,13 @@ clf_LR.fit(X_train, y_train)
 df_performance.loc['LR (test)',:] = eval_Performance(y_test, X_test, clf_LR, clf_name ='LR')
 df_performance.loc['LR (train)',:] = eval_Performance(y_train, X_train, clf_LR, clf_name ='LR (train)')
 
+print("Total number of featuresj (LR):", X_train.shape[1])
+
 
 #FEATURE SELECTION
 
 #Univariate FS
-UVFS_Selector = SelectKBest(score_func = f_classif, k=15)
+UVFS_Selector = SelectKBest(score_func = f_classif, k=30)
 
 X_UVFS = UVFS_Selector.fit_transform(X_train, y_train)
 X_UVFS_test = UVFS_Selector.transform(X_test)
@@ -143,7 +145,7 @@ print(df_performance)
 
 #L1 REGULARIZATION
 param_grid = {
-    "C": [0.01, 0.1, 1.0, 10.0, 100.0],  # Regularization strength
+    "C": [0.01, 0.1],  # Regularization strength
     "penalty": ["l1"],  # L1 regularization
     "solver": ["liblinear"]  # Solver for logistic regression
 }
@@ -160,6 +162,10 @@ clf_LR_L1.fit(X_train, y_train)
 
 # Best L1 model after hyperparameter tuning
 best_L1_model = clf_LR_L1.best_estimator_
+
+n_used_features = np.sum(best_L1_model.coef_ != 0)
+print(f"Number of features used (nonzero weights): {n_used_features}")
+
 print("Best parameters (L1):", clf_LR_L1.best_params_)
 
 #Evaluation of performance on train and test sets
@@ -181,7 +187,7 @@ print(f"Selected features: {L1_selected_features}")
 #L2 REGULARIZATION
 
 param_grid = {
-    "C": [0.01, 0.1, 1.0, 10.0, 100.0],  # Regularization strength
+    "C": [0.01, 0.1],  # Regularization strength
     "penalty": ["l2"],  #L2 regularization
     "solver": ["liblinear"]  # Solver for logistic regression
 }
@@ -196,6 +202,9 @@ clf_LR_L2 = GridSearchCV(
 clf_LR_L2.fit(X_train, y_train)
 
 best_L2_model = clf_LR_L2.best_estimator_
+n_used_features_L2 = np.sum(best_L2_model.coef_ != 0)
+print(f"Number of features used (nonzero weights): {n_used_features_L2}")
+
 print("Best parameters (L2):", clf_LR_L2.best_params_)
 
 
@@ -208,13 +217,13 @@ df_performance.loc['LR (train,L2)', :] = eval_Performance(y_train, X_train, clf_
 
 #Coefficients of selected features
 
-for feature, coef in zip(L1_selected_features, best_L2_model.coef_[0]):
-    print(f"Feature: {feature}, Coefficient: {coef}")
+#for feature, coef in zip(L1_selected_features, best_L2_model.coef_[0]):
+#    print(f"Feature: {feature}, Coefficient: {coef}")
 
 
 #Recursive Feature Eliminiation with Cross-Validation
 
-log_reg = LogisticRegression(class_weight='balanced', solver="liblinear", random_state=10)
+log_reg = LogisticRegression(class_weight='balanced', solver="liblinear", random_state=10, C=0.1)
 
 rfe_cv = RFECV(estimator=log_reg, step=1, cv=5, scoring='roc_auc')
 rfe_cv.fit(X_train, y_train)
@@ -317,5 +326,6 @@ plt.xticks(rotation=45)
 plt.ylim([0, 1])
 plt.grid(True, axis='y', linestyle='--')
 plt.show()
+
 
 
