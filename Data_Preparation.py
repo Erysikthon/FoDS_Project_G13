@@ -54,8 +54,8 @@ data = data.drop(columns=["Ort"])
 features.remove("Ort")
 
 #Dropping SA !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#data = data.drop(columns=["SA"])
-#features.remove("SA")
+data = data.drop(columns=["SA"])
+features.remove("SA")
 
 #Dropping Columns with 100% Missing Data
 #columns to drop

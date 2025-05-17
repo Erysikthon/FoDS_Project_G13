@@ -71,11 +71,30 @@ data[label] = (data[label] > 0).astype(int)
 # Split
 X = data[features]
 y = data[label]
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=tt_size, random_state=42) #stratifying ???????????????????????????????????????????????????????????
+
+################################### NEW ###############################
+yeares = data["JAHR"]
+
+#for all years
+if current_year == "all":
+    stratify_col = y.astype(str) + "_" + yeares.astype(str)
+
+else:
+    stratify_col = y
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=10, stratify= stratify_col)  #for all years also stratify years
+
+############################################################################################################
+
+#X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=tt_size, random_state=42) #stratifying ???????????????????????????????????????????????????????????
+
+
 
 # Feature types
 numerical_features = X.select_dtypes(include=["int64", "float64"]).columns.tolist()
 categorical_features = X.select_dtypes(include=["object"]).columns.tolist()
+
 
 # --- Preprocessing and modeling ---
 
