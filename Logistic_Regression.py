@@ -16,31 +16,35 @@ from sklearn.feature_selection import RFE
 from sklearn.feature_selection import RFECV
 
 
-#correlation kt subventionen
+
 
 #Transforming object col into category
+
+#for all years
 #data["JAHR"] = data["JAHR"].astype('category')
+
 data[cat_features] = data[cat_features].astype('category')
 
 #ONE HOT ENCODING
 features_encoded = pd.get_dummies(data[features], columns=cat_features, drop_first=True)
 cat_features_encoded = [col for col in features_encoded.columns if any(orig in col for orig in cat_features)]
 
-
-
 X = features_encoded
 y = data[label]
-y2 = data["JAHR"]
 
-stratify_col = y.astype(str) + "_" + y2.astype(str)
+#for all years
+#y2 = data["JAHR"]
+#stratify_col = y.astype(str) + "_" + y2.astype(str)
 
+stratify_col = y
 
 #SPLITTIING DATA
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=10, stratify= stratify_col)  #for all years also stratify years
 
 
-#Missing Data
+#HANDLING MISSING DATA
+
 #Filling Categorical Columns
 for n in cat_features_encoded:
     X_train[n] = X_train[n].fillna("NA")
@@ -49,10 +53,9 @@ for n in cat_features_encoded:
 for i in X_train[num_features]:
     X_train[i] = X_train[i].fillna(X_train[i].mean())
 
-# Filling Numeric Columns in X_test
-for j in X_train[num_features]:  # Ensure consistency with X_train's mean
+#Filling Numeric Columns in X_test
+for j in X_train[num_features]:  # To ensure consistency with X_train's mean
     X_test[j] = X_test[j].fillna(X_train[j].mean())
-
 
 
 #SCALING (after splitting!!)
@@ -141,7 +144,7 @@ print(df_performance)
 
 #L1 REGULARIZATION
 param_grid = {
-    "C": [0.01, 0.1, 1.0, 10.0],  # Regularization strength
+    "C": [0.01, 0.1, 1.0, 10.0, 100.0],  # Regularization strength
     "penalty": ["l1"],  # L1 regularization
     "solver": ["liblinear"]  # Solver for logistic regression
 }
@@ -204,45 +207,12 @@ df_performance.loc['LR (test,L2)', :] = eval_Performance(y_test, X_test, clf_LR_
 df_performance.loc['LR (train,L2)', :] = eval_Performance(y_train, X_train, clf_LR_L2,
                                                                clf_name='LR_L2(train)')
 
-print(df_performance)
 
 #Coefficients of selected features
 
 for feature, coef in zip(L1_selected_features, best_L2_model.coef_[0]):
     print(f"Feature: {feature}, Coefficient: {coef}")
 
-""""
-#L2 after UVFS
-X_UVFS_train = X_train[UVFS_selected_features]  # Training set based on UVFS
-X_UVFS_test = X_test[UVFS_selected_features]  # Test set based on UVFS
-
-param_grid = {
-    "C": [0.01, 0.1, 1.0, 10.0, 100.0],  # Regularization strength
-    "penalty": ["l1","l2"],  #L2 regularization                (l2 bc, only selected features in df -> all of them important)
-    "solver": ["liblinear"]  # Solver for logistic regression
-}
-clf_LR_UVFS_L2 = GridSearchCV(
-    LogisticRegression(random_state=10, class_weight='balanced'),
-    param_grid,
-    cv=5,
-    scoring='roc_auc'
-    #scoring='balanced_accuracy'
-)
-
-clf_LR_UVFS_L2.fit(X_UVFS_train, y_train)
-
-best_UVFS_L2_model = clf_LR_UVFS_L2.best_estimator_
-print("Best parameters:", clf_LR_UVFS_L2.best_params_)
-
-
-# Evaluation of the reduced feature model
-df_performance.loc['LR (test, UVFS L2)', :] = eval_Performance(y_test, X_UVFS_test, clf_LR_UVFS_L2,
-                                                              clf_name='LR_UVFS_L2')
-df_performance.loc['LR (train, UVFS L2)', :] = eval_Performance(y_train, X_UVFS_train, clf_LR_UVFS_L2,
-                                                               clf_name='LR_UVFS_L2(train)')
-
-print(df_performance)
-"""
 
 #Recursive Feature Eliminiation with Cross-Validation
 

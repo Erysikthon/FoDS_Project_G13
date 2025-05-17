@@ -9,11 +9,13 @@ from sklearn.impute import KNNImputer
 df = pd.read_csv("data/kzp-2008-2020-timeseries.csv", encoding="latin-1")
 
 #DATA OVERVIEW
-print('Shape of initial Data Set: ', df.shape)
+print('Shape of initial data set: ', df.shape)
 print('Data types;', df.dtypes.unique())
 
 #SPECIFIY YEAR
-data =df[df["JAHR"]==2011].copy()
+current_year = 2013
+data =df[df["JAHR"]==current_year].copy()
+
 
 #ALL YEARS
 #data = df.copy()
@@ -21,12 +23,16 @@ data =df[df["JAHR"]==2011].copy()
 #LABEL AND FEATURES DECLARATION
 label = "FiErg"
 
-features = ["JAHR","KT","Inst", "Adr",  "Ort", "Typ", "RWStatus", "Akt", "SL", "WB", "AnzStand","SA","PtageStatT","AustStatT","NeugStatT","Ops","Gebs","CMIb","CMIn",
+features = ["KT","Inst", "Adr",  "Ort", "Typ", "RWStatus", "Akt", "SL", "WB", "AnzStand","SA","PtageStatT","AustStatT","NeugStatT","Ops","Gebs","CMIb","CMIn",
             "pPatWAU","pPatWAK", "pPatLKP","pPatHOK","PersA","PersP","PersMT","PersT","PersAFall","PersPFall","PersMTFall","PersTFall","AnzBelA","AnzBelP (nur ab KZP2010)"]
+
+#for all years
+#features.append("JAHR")
+
 
 #New data declaration
 data = data[features + [label]]
-print(data.shape)
+print("New data set shape:", data.shape)
 
 #DROPPING COLUMNS
 #Dropping Adr
@@ -66,17 +72,17 @@ for col in cat_features:  # Iterate through each categorical column
 
 
 #MISSING DATA OVERVIEW
-#Percentage of missing values in label column
+#Percentage of missing values in Label column
 missing_percentage_label = (data[label].isnull().sum() / len(data[label])) * 100
-print("Missing percentage Label\n", missing_percentage_label)
+print("Missing percentage Label:\n", missing_percentage_label)
 
 #Percentage of missing values per categorical column
 missing_percentage_cat = (data[cat_features].isnull().sum() / len(data[cat_features])) * 100
-print("Missing percentage Categorical columns\n", missing_percentage_cat)
+print("Missing percentage Categorical columns:\n", missing_percentage_cat)
 
 #Percentage of missing values per numeric column
 missing_percentage_num = (data[num_features].isnull().sum() / len(data[num_features])) * 100
-print("Missing percentage numeric columns\n", missing_percentage_num)
+print("Missing percentage numeric columns:\n", missing_percentage_num)
 
 
 
