@@ -10,6 +10,7 @@ import shap
 import matplotlib.pyplot as plt
 import seaborn as sns
 from Data_Preparation import df
+import os
 
 # --- Parameters --------
 tt_size = 0.2
@@ -123,7 +124,11 @@ if model_type == "svc":
     sns.barplot(x="Importance", y="Feature", data=coef_df.head(n_ftrs))
     plt.title(f"Top {n_ftrs} Feature Importances (SVC)")
     plt.tight_layout()
-    plt.savefig(f'SVC_features_top-{n_ftrs}.png', dpi=300)
+
+    file_name = f'SVC_features_top-{n_ftrs}.png'
+    file_path = os.path.join("output", file_name)
+    plt.savefig(file_path, dpi=300)
+
     #plt.show()
 
 elif model_type == "hgb":
@@ -166,7 +171,10 @@ elif model_type == "hgb":
     sns.barplot(data=feature_importance_df.head(n_ftrs), x='Importance', y='Feature')
     plt.title(f'Top {n_ftrs} Feature Importances (HGB)')
     plt.tight_layout()
-    plt.savefig(f'HGB_features_top-{n_ftrs}.png', dpi=300)
+
+    file_name = f"HGB_features_top-{n_ftrs}.png"
+    file_path = os.path.join("output", file_name)
+    plt.savefig(file_path, dpi=300)
     #plt.show()
 
 else:
@@ -188,7 +196,13 @@ sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=label_names, ytic
 plt.xlabel('Predicted Labels')
 plt.ylabel('True Labels')
 plt.title(f'Confusion Matrix ({model_type.upper()})')
-plt.savefig(f'confusion_matrix_{model_type}.png', dpi=300)
+
+file_name = f'confusion_matrix_{model_type}.png'
+file_path = os.path.join("output", file_name)
+
+# Save the plot to the output folder
+plt.savefig(file_path, dpi=300)
+
 #plt.show()
 
 # ---

@@ -19,11 +19,8 @@ from sklearn.feature_selection import RFECV
 
 
 #Transforming object col into category
-
-#for all years
-#data["JAHR"] = data["JAHR"].astype('category')
-
 data[cat_features] = data[cat_features].astype('category')
+
 
 #ONE HOT ENCODING
 features_encoded = pd.get_dummies(data[features], columns=cat_features, drop_first=True)
@@ -32,11 +29,14 @@ cat_features_encoded = [col for col in features_encoded.columns if any(orig in c
 X = features_encoded
 y = data[label]
 
-#for all years
-#y2 = data["JAHR"]
-#stratify_col = y.astype(str) + "_" + y2.astype(str)
-
 stratify_col = y
+
+#for all years
+if current_year == "all":
+    y2 = data["JAHR"]
+    stratify_col = y.astype(str) + "_" + y2.astype(str)
+
+
 
 #SPLITTIING DATA
 X_train, X_test, y_train, y_test = train_test_split(
@@ -94,8 +94,6 @@ clf_LR.fit(X_train, y_train)
 df_performance.loc['LR (test)',:] = eval_Performance(y_test, X_test, clf_LR, clf_name ='LR')
 df_performance.loc['LR (train)',:] = eval_Performance(y_train, X_train, clf_LR, clf_name ='LR (train)')
 
-print(df_performance)
-
 
 #FEATURE SELECTION
 
@@ -111,7 +109,7 @@ pvalues = UVFS_Selector.pvalues_  #p-values for each feature
 
 
 UVFS_selected_features = UVFS_Selector.get_feature_names_out(input_features=X_train.columns)
-print("Selected Features:", UVFS_selected_features)
+print("Selected Features (UVFS):", UVFS_selected_features)
 
 
 # Visualization of top selected features' importance
@@ -161,14 +159,13 @@ clf_LR_L1.fit(X_train, y_train)
 
 # Best L1 model after hyperparameter tuning
 best_L1_model = clf_LR_L1.best_estimator_
-print("Best parameters:", clf_LR_L1.best_params_)
+print("Best parameters (L1):", clf_LR_L1.best_params_)
 
 #Evaluation of performance on train and test sets
 df_performance.loc['LR (test,L1)', :] = eval_Performance(y_test, X_test, best_L1_model, clf_name='LR_L1')
 df_performance.loc['LR (train,L1)', :] = eval_Performance(y_train, X_train, best_L1_model,
                                                               clf_name='LR_L1 (train)')
 
-print(df_performance)
 
 #Extract selected features
 L1_selected_features = []
@@ -198,7 +195,7 @@ clf_LR_L2 = GridSearchCV(
 clf_LR_L2.fit(X_train, y_train)
 
 best_L2_model = clf_LR_L2.best_estimator_
-print("Best parameters:", clf_LR_L2.best_params_)
+print("Best parameters (L2):", clf_LR_L2.best_params_)
 
 
 # Evaluation of the reduced feature model
@@ -229,7 +226,7 @@ df_performance.loc['LR (train,RFE_CV)', :] = eval_Performance(y_train, X_train, 
                                                               clf_name='LR_rfe_cv (train)')
 
 # Print optimal number of features
-print(f"Optimal number of features: {rfe_cv.n_features_}")
+print(f"Optimal number of features (RFE): {rfe_cv.n_features_}")
 
 # Get the features selected
 rfe_selected_features = X_train.columns[rfe_cv.support_]

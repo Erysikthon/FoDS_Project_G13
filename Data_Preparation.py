@@ -13,12 +13,13 @@ print('Shape of initial data set: ', df.shape)
 print('Data types;', df.dtypes.unique())
 
 #SPECIFIY YEAR
-current_year = 2013
-data =df[df["JAHR"]==current_year].copy()
+current_year = "all"        #change this for individual year analysis
 
+if current_year != "all":
+    data =df[df["JAHR"]==current_year].copy()
 
-#ALL YEARS
-#data = df.copy()
+else:
+    data = df.copy()
 
 #LABEL AND FEATURES DECLARATION
 label = "FiErg"
@@ -27,7 +28,8 @@ features = ["KT","Inst", "Adr",  "Ort", "Typ", "RWStatus", "Akt", "SL", "WB", "A
             "pPatWAU","pPatWAK", "pPatLKP","pPatHOK","PersA","PersP","PersMT","PersT","PersAFall","PersPFall","PersMTFall","PersTFall","AnzBelA","AnzBelP (nur ab KZP2010)"]
 
 #for all years
-#features.append("JAHR")
+features.append("JAHR")
+data["JAHR"] = data["JAHR"].astype("category")
 
 
 #New data declaration
