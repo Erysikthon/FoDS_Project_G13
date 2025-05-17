@@ -71,7 +71,7 @@ data[label] = (data[label] > 0).astype(int)
 # Split
 X = data[features]
 y = data[label]
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=tt_size, random_state=42) #stratifying ???????????????????????????????????????????????????????????
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=tt_size, random_state=42, stratify = y) #stratifying ???????????????????????????????????????????????????????????
 
 # Feature types
 numerical_features = X.select_dtypes(include=["int64", "float64"]).columns.tolist()
@@ -128,12 +128,7 @@ if model_type == "svc":
     sns.barplot(x="Importance", y="Feature", data=coef_df.head(n_ftrs))
     plt.title(f"Top {n_ftrs} Feature Importances (SVC)")
     plt.tight_layout()
-
-    file_name = f'SVC_features_top-{n_ftrs}.png'
-    file_path = os.path.join("output", file_name)
-    plt.savefig(file_path, dpi=300)
-
-    #plt.show()
+    plt.savefig(f'SVC_features_top-{n_ftrs}.png', dpi=300)
 
 elif model_type == "hgb":
     # --- Categorical preprocessing ---
@@ -175,16 +170,13 @@ elif model_type == "hgb":
     sns.barplot(data=feature_importance_df.head(n_ftrs), x='Importance', y='Feature')
     plt.title(f'Top {n_ftrs} Feature Importances (HGB)')
     plt.tight_layout()
-
-    file_name = f"HGB_features_top-{n_ftrs}.png"
-    file_path = os.path.join("output", file_name)
-    plt.savefig(file_path, dpi=300)
+    plt.savefig(f'HGB_features_top-{n_ftrs}.png', dpi=300)
     #plt.show()
 
 else:
     raise ValueError("Invalid model_type. Choose 'svc' or 'hgb'.")
 
-# --- Evaluation ---
+# Evaluation
 label_names = ["FiErg <= 0", "FiErg > 0"]
 y_test_named = [label_names[label] for label in y_test_final]
 y_pred_named = [label_names[label] for label in y_pred]
@@ -200,49 +192,37 @@ sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=label_names, ytic
 plt.xlabel('Predicted Labels')
 plt.ylabel('True Labels')
 plt.title(f'Confusion Matrix ({model_type.upper()})')
-
-file_name = f'confusion_matrix_{model_type}.png'
-file_path = os.path.join("output", file_name)
-
-# Save the plot to the output folder
-plt.savefig(file_path, dpi=300)
-
-
+plt.savefig(f'confusion_matrix_{model_type}.png', dpi=300)
 #plt.show()
 
-# ---
-# import os
-# import subprocess
+# Ensure y_test_final and y_score are available
+if model_type == "svc":
+    # For SVC, use decision_function
+    y_score = clf.decision_function(X_test_final)
+elif model_type == "hgb":
+    # For HGB, use predict_proba and take the score for the positive class (1)
+    y_score = clf.predict_proba(X_test_processed)[:, 1]
 
-# # === 1. Confusion Matrix Data ===
+# ROC Curve and AUC
+fpr, tpr, thresholds = roc_curve(y_test_final, y_score)
+roc_auc = auc(fpr, tpr)
 
-# # === 2. Convert to pandas DataFrame ===
-# df_cm = pd.DataFrame(cm, index=[f"True {l}" for l in label_names],
-#                         columns=[f"Pred {l}" for l in label_names])
+print(f"AUC: {roc_auc:.3f}")
 
-# # === 3. Export to LaTeX table string ===
-# latex_table = df_cm.to_latex(index=True, caption="Confusion Matrix", label="tab:confusion-matrix")
+# Plot ROC Curve
+plt.figure()
+plt.plot(fpr, tpr, color='darkorange', lw=2, label=f'ROC curve (AUC = {roc_auc:.2f})')
+plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title(f'Receiver Operating Characteristic ({model_type.upper()})')
+plt.legend(loc="lower right")
+plt.tight_layout()
+plt.savefig(f'roc_curve_{model_type}.png', dpi=300)
 
-# # === 4. Write full .tex document ===
-# tex_document = r"""
-# \documentclass{article}
-# \usepackage{booktabs}
-# \usepackage[margin=1in]{geometry}
-# \begin{document}
 
-# """ + latex_table + r"""
-
-# \end{document}
-# """
-
-# # === 5. Save to .tex file ===
-# output_base = "confusion_matrix_table"
-# tex_file = f"{output_base}.tex"
-# pdf_file = f"{output_base}.pdf"
-
-# with open(tex_file, "w") as f:
-#     f.write(tex_document)
-# print(f"Saved LaTeX table to: {tex_file}")
 
 
 
