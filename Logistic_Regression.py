@@ -253,7 +253,7 @@ plt.ylim([0, 1])  # F1-Score ranges between 0 and 1
 plt.grid(True, axis='y', linestyle='--')
 plt.show()
 
-#ROC-AUC
+#ROC-AUC BAR PLOT
 df_performance[['roc_auc']].plot(kind='bar', figsize=(15, 12), color='orange')
 plt.title('ROC-AUC Comparison of Models with All vs Selected Features')
 plt.ylabel('ROC-AUC')
@@ -261,6 +261,46 @@ plt.xticks(rotation=45)
 plt.ylim([0.5, 1])  # ROC-AUC ranges between 0.5 (random) and 1 (perfect)
 plt.grid(True, axis='y', linestyle='--')
 plt.show()
+
+#ROC-AUC Plot for Test SEt
+plt.figure(figsize=(10, 7))
+
+# Logistic Regression (All Features)
+y_score_lr = clf_LR.predict_proba(X_test)[:, 1]
+fpr_lr, tpr_lr, _ = roc_curve(y_test, y_score_lr)
+roc_auc_lr = auc(fpr_lr, tpr_lr)
+plt.plot(fpr_lr, tpr_lr, lw=2, label=f'LogReg (AUC = {roc_auc_lr:.2f})')
+
+# Logistic Regression with Univariate Feature Selection
+y_score_uvfs = clf_LR_UVFS.predict_proba(X_UVFS_test)[:, 1]
+fpr_uvfs, tpr_uvfs, _ = roc_curve(y_test, y_score_uvfs)
+roc_auc_uvfs = auc(fpr_uvfs, tpr_uvfs)
+plt.plot(fpr_uvfs, tpr_uvfs, lw=2, label=f'LogReg+UVFS (AUC = {roc_auc_uvfs:.2f})')
+
+# Logistic Regression with L1 Regularization
+y_score_l1 = best_L1_model.predict_proba(X_test)[:, 1]
+fpr_l1, tpr_l1, _ = roc_curve(y_test, y_score_l1)
+roc_auc_l1 = auc(fpr_l1, tpr_l1)
+plt.plot(fpr_l1, tpr_l1, lw=2, label=f'LogReg+L1 (AUC = {roc_auc_l1:.2f})')
+
+# Logistic Regression with L2 Regularization
+y_score_l2 = best_L2_model.predict_proba(X_test)[:, 1]
+fpr_l2, tpr_l2, _ = roc_curve(y_test, y_score_l2)
+roc_auc_l2 = auc(fpr_l2, tpr_l2)
+plt.plot(fpr_l2, tpr_l2, lw=2, label=f'LogReg+L2 (AUC = {roc_auc_l2:.2f})')
+
+plt.plot([0, 1], [0, 1], color='gray', lw=2, linestyle='--', label='Chance')
+
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('ROC Curve Comparison')
+plt.legend(loc="lower right")
+plt.grid(True, linestyle='--', alpha=0.6)
+plt.tight_layout()
+plt.show()
+
 
 #Precision
 df_performance[['precision']].plot(kind='bar', figsize=(15, 12), color='green')
