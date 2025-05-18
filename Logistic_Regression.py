@@ -61,6 +61,11 @@ X_train = pd.get_dummies(X_train, columns=cat_features, drop_first=True)
 X_test = pd.get_dummies(X_test, columns=cat_features, drop_first=True)
 X_test = X_test.reindex(columns=X_train.columns, fill_value=0)
 
+########################## ALTERNATIVE ->
+
+
+
+
 #######################  SCALING (after splitting!!) ###############################################################
 sc = StandardScaler()
 X_train[num_features] = sc.fit_transform(X_train[num_features])
@@ -208,9 +213,29 @@ clf_LR_L1.fit(X_train, y_train)
 best_L1_model = clf_LR_L1.best_estimator_
 
 n_used_features = np.sum(best_L1_model.coef_ != 0)
-print(f"Number of features used (nonzero weights): {n_used_features}")
+print(f"Number of features used (L1): {n_used_features}")
 
 print("Best parameters (L1):", clf_LR_L1.best_params_)
+
+# Feature Importance
+coefs = best_L1_model.coef_[0]  # Get coefficients from the model
+coef_L1 = pd.DataFrame({
+    'Feature': X_train.columns,  # Using feature names from X_train
+    'Importance': np.abs(coefs)
+}).sort_values(by='Importance', ascending=False)
+
+print("\nTop Important Features (L1):")
+print(coef_L1.head(10))  #
+
+plt.figure(figsize=(10, 6))
+sns.barplot(x="Importance", y="Feature", data=coef_L1.head(10))
+plt.title("Top 10 Feature Importances (L1)")
+plt.tight_layout()
+
+file_name = 'L1_features_top_10.png'
+file_path = os.path.join("output", file_name)
+plt.savefig(file_path, dpi=300)
+
 
 #Evaluation of performance on train and test sets
 df_performance.loc['LR (test,L1)', :] = eval_Performance(y_test, X_test, best_L1_model, clf_name='LR_L1')
@@ -228,7 +253,7 @@ print(f"Selected features: {L1_selected_features}")
 
 
 
-#L2 REGULARIZATION
+############################## L2 REGULARIZATION ###########################################################
 
 param_grid = {
     "C": [0.01, 0.1, 1.0, 10.0],  # Regularization strength
@@ -251,6 +276,26 @@ print(f"Number of features used (nonzero weights): {n_used_features_L2}")
 
 print("Best parameters (L2):", clf_LR_L2.best_params_)
 
+# Feature Importance
+coefs = best_L2_model.coef_[0]  # Get coefficients from the model
+coef_L1 = pd.DataFrame({
+    'Feature': X_train.columns,  # Using feature names from X_train
+    'Importance': np.abs(coefs)
+}).sort_values(by='Importance', ascending=False)
+
+print("\nTop Important Features (L1):")
+print(coef_L1.head(10))  #
+
+plt.figure(figsize=(10, 6))
+sns.barplot(x="Importance", y="Feature", data=coef_L1.head(10))
+plt.title("Top 10 Feature Importances (L2)")
+plt.tight_layout()
+
+file_name = 'L2_features_top_10.png'
+file_path = os.path.join("output", file_name)
+plt.savefig(file_path, dpi=300)
+
+
 
 # Evaluation of the reduced feature model
 df_performance.loc['LR (test,L2)', :] = eval_Performance(y_test, X_test, clf_LR_L2,
@@ -265,7 +310,7 @@ df_performance.loc['LR (train,L2)', :] = eval_Performance(y_train, X_train, clf_
 #    print(f"Feature: {feature}, Coefficient: {coef}")
 
 
-#Recursive Feature Eliminiation with Cross-Validation
+########################## Recursive Feature Eliminiation with Cross-Validation #####################################
 
 log_reg = LogisticRegression(class_weight='balanced', solver="liblinear", random_state=10)
 
@@ -285,6 +330,27 @@ print(f"Optimal number of features (RFE): {rfe_cv.n_features_}")
 # Get the features selected
 rfe_selected_features = X_train.columns[rfe_cv.support_]
 print(f"Selected features: {list(rfe_selected_features)}")
+
+# Feature Importance
+coefs = rfe_cv.estimator_.coef_[0]  # coefficients from the fitted estimator
+coef_rfe = pd.DataFrame({
+    'Feature': rfe_selected_features,
+    'Importance': np.abs(coefs)  # Only use coefficients for selected features
+}).sort_values(by='Importance', ascending=False)
+
+print("\nTop Important Features (RFE):")
+print(coef_rfe.head(10))
+
+plt.figure(figsize=(10, 6))
+sns.barplot(x="Importance", y="Feature", data=coef_rfe.head(10))
+plt.title("Top 10 Feature Importances (RFE)")
+plt.tight_layout()
+
+file_name = 'RFE_features_top_10.png'
+file_path = os.path.join("output", file_name)
+plt.savefig(file_path, dpi=300)
+
+
 
 print(df_performance)
 
