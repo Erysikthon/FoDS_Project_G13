@@ -98,10 +98,111 @@ data = data.dropna(subset=['FiErg'])
 
 
 #Transforming label to 0/1
-data[label] = data[label].apply(lambda x: 0 if x < 0 else 1)
+#data[label] = data[label].apply(lambda x: 0 if x < 0 else 1)
 
 
 print('Shape of modified data set;', data.shape)
 
 #LABEL BALANCE CHECK
 print(data[label].value_counts(normalize=True))
+
+
+
+
+#################################### Correlation KT - EtSubv ###########################################################
+print("KT dtype:", df["KT"].dtype)
+print("EtSubv dtype:", df["EtSubv"].dtype)
+print("Any null values in KT?", df["KT"].isnull().any())
+print("Any null values in EtSubv?", df["EtSubv"].isnull().any())
+
+def correlation_ratio(categorical, numeric):
+    categories = pd.unique(categorical)
+    n = len(numeric)
+
+    # Calculate means per category
+    cat_means = np.array([numeric[categorical == cat].mean() for cat in categories])
+    cat_counts = np.array([sum(categorical == cat) for cat in categories])
+
+    # Calculate total mean
+    total_mean = numeric.mean()
+
+    # Calculate weighted sum of squared deviations from total mean
+    numerator = sum(count * (mean - total_mean) ** 2
+                    for count, mean in zip(cat_counts, cat_means))
+
+    # Calculate total sum of squared deviations
+    denominator = sum((numeric - total_mean) ** 2)
+
+    # Return correlation ratio
+    return np.sqrt(numerator / denominator)
+
+
+#################################### KT - EtSubv ################################
+correlations = {}
+
+# First, clean the data by removing rows with null values in either column
+clean_df = df.dropna(subset=['KT', 'EtSubv'])
+
+# Calculate correlation ratio using the whole dataset directly
+eta = correlation_ratio(clean_df['KT'], clean_df['EtSubv'])
+
+print("\nOverall correlation ratio between cantons and subventions:", eta)
+
+# For better analysis, let's look at the distribution of subventions by canton
+plt.figure(figsize=(12, 8))
+sns.boxplot(data=clean_df, x='KT', y='EtSubv')
+plt.title('Distribution of Subventions by Canton')
+plt.xticks(rotation=45)
+plt.xlabel('Canton')
+plt.ylabel('Subventions (EtSubv)')
+plt.tight_layout()
+plt.show()
+
+
+
+
+
+################ KT - FiErg
+correlations = {}
+
+# First, clean the data by removing rows with null values in either column
+clean_df = df.dropna(subset=['KT', 'FiErg'])
+
+# Calculate correlation ratio using the whole dataset directly
+eta = correlation_ratio(clean_df['KT'], clean_df['FiErg'])
+
+print("\nOverall correlation ratio between cantons and subventions:", eta)
+
+# For better analysis, let's look at the distribution of subventions by canton
+plt.figure(figsize=(12, 8))
+sns.boxplot(data=clean_df, x='KT', y='FiErg')
+plt.title('Distribution of FiErg by KT')
+plt.xticks(rotation=45)
+plt.xlabel('KT')
+plt.ylabel('FiErg)')
+plt.tight_layout()
+plt.show()
+
+########################################## Correlation EtSubv - FiErg
+#Correlation measures
+pearson_corr = clean_df['EtSubv'].corr(clean_df['FiErg'])
+spearman_corr = clean_df['EtSubv'].corr(clean_df['FiErg'], method='spearman')
+
+print(f"Pearson correlation coefficient: {pearson_corr:.3f}")
+print(f"Spearman correlation coefficient: {spearman_corr:.3f}")
+
+# Scatter plot to visualize the relationship
+plt.figure(figsize=(10, 6))
+plt.scatter(clean_df['EtSubv'], clean_df['FiErg'], alpha=0.5)
+plt.xlabel('Subventions (EtSubv)')
+plt.ylabel('Financial Results (FiErg)')
+plt.title(f'Correlation between Subventions and Financial Results\nPearson r = {pearson_corr:.3f}')
+
+# Add trend line
+z = np.polyfit(clean_df['EtSubv'], clean_df['FiErg'], 1)
+p = np.poly1d(z)
+plt.plot(clean_df['EtSubv'], p(clean_df['EtSubv']), "r--", alpha=0.8)
+
+plt.tight_layout()
+plt.show()
+
