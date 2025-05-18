@@ -15,6 +15,7 @@ from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.feature_selection import RFE
 from sklearn.feature_selection import RFECV
 import os
+from sklearn.model_selection import KFold
 
 
 
@@ -56,63 +57,77 @@ X_train[cat_features] = X_train[cat_features].astype('category')
 X_test[cat_features] = X_test[cat_features].astype('category')
 
 ######################### ONE HOT ENCODING ##################################################################
+"""
 X_train = pd.get_dummies(X_train, columns=cat_features, drop_first=True)
 
 X_test = pd.get_dummies(X_test, columns=cat_features, drop_first=True)
 X_test = X_test.reindex(columns=X_train.columns, fill_value=0)
+"""
 
-########################## ALTERNATIVE ->
+########################## ALTERNATIVE -> TARGET ENCODING ##########################################################
+def target_encode_feature(train_series, test_series, target, n_splits=5, alpha=5):
+    # Initialize KFold
+    kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
+
+    # Converting series to numpy arrays to avoid categorical dtype issues
+    train_encoded = np.zeros(len(train_series))
+    test_encoded = np.zeros(len(test_series))
+
+    # Global mean for smoothing and handling unseen categories
+    global_mean = target.mean()
+
+    # k-fold target encoding
+    for train_idx, val_idx in kf.split(train_series):
+        # Get current fold data
+        fold_train = train_series.iloc[train_idx]
+        fold_val = train_series.iloc[val_idx]
+        fold_target = target.iloc[train_idx]
+
+        # Calculating means for each category with smoothing
+        category_means = {}
+        for category in fold_train.unique():
+            cat_idx = fold_train == category
+            n = cat_idx.sum()
+            cat_mean = fold_target[cat_idx].mean()
+            # Apply smoothing
+            category_means[category] = (cat_mean * n + global_mean * alpha) / (n + alpha)
+
+        #Apply encoding
+        for category, mean_value in category_means.items():
+            train_encoded[val_idx[fold_val == category]] = mean_value
+        # Fill unseen categories with global mean
+        train_encoded[val_idx[~fold_val.isin(category_means.keys())]] = global_mean
+
+    # Encode test set using all training data
+    category_means = {}
+    for category in train_series.unique():
+        cat_idx = train_series == category
+        n = cat_idx.sum()
+        cat_mean = target[cat_idx].mean()
+        category_means[category] = (cat_mean * n + global_mean * alpha) / (n + alpha)
+
+    # Apply encoding to test set
+    for category, mean_value in category_means.items():
+        test_encoded[test_series == category] = mean_value
+    # Fill unseen categories with global mean
+    test_encoded[~test_series.isin(category_means.keys())] = global_mean
+
+    return train_encoded, test_encoded
 
 
-
+# Apply target encoding to each categorical feature
+for feature in cat_features:
+    X_train[feature], X_test[feature] = target_encode_feature(
+        X_train[feature],
+        X_test[feature],
+        y_train
+    )
 
 #######################  SCALING (after splitting!!) ###############################################################
 sc = StandardScaler()
 X_train[num_features] = sc.fit_transform(X_train[num_features])
 X_test[num_features]  = sc.transform(X_test[num_features])
 
-""""
-######################## ONE HOT ENCODING ##############################################################################
-features_encoded = pd.get_dummies(data[features], columns=cat_features, drop_first=True)
-cat_features_encoded = [col for col in features_encoded.columns if any(orig in col for orig in cat_features)]
-
-X = features_encoded
-y = data[label]
-
-stratify_col = y
-
-#for all years
-if current_year == "all":
-    y2 = data["JAHR"]
-    stratify_col = y.astype(str) + "_" + y2.astype(str)
-
-
-
-####################### SPLITTING DATA ################################################################################
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=10, stratify= stratify_col)  #for all years also stratify years
-
-
-####################### HANDLING MISSING DATA #########################################################################
-
-#Filling Categorical Columns
-for n in cat_features_encoded:
-    X_train[n] = X_train[n].fillna("NA")
-
-#Filling Numeric Columns
-for i in X_train[num_features]:
-    X_train[i] = X_train[i].fillna(X_train[i].mean())
-
-#Filling Numeric Columns in X_test
-for j in X_train[num_features]:  # To ensure consistency with X_train's mean
-    X_test[j] = X_test[j].fillna(X_train[j].mean())
-
-
-##################### SCALING (after splitting!!) ######################################################################
-sc = StandardScaler()
-X_train[num_features] = sc.fit_transform(X_train[num_features])
-X_test[num_features]  = sc.transform(X_test[num_features])
-"""
 
 ##################### EVALUATION METRICS ###############################################################################
 def eval_Performance(y_eval, X_eval, clf, clf_name = 'My Classifier'):
