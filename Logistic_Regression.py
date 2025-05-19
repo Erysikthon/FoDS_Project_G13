@@ -34,7 +34,7 @@ else:
     stratify_col = y
 
 X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=10, stratify= stratify_col)  #straticatio over years and label
+    X, y, test_size=0.2, random_state=10, stratify= stratify_col)  #stratication over years and label
 
 
 ############################  MISSING DATA HANDLING ###########################################
@@ -169,7 +169,7 @@ print("Total number of features (LR):", X_train.shape[1])
 ##################### FEATURE SELECTION ###############################################################################
 
 #Univariate FS
-UVFS_Selector = SelectKBest(score_func=f_classif, k=15)
+UVFS_Selector = SelectKBest(score_func=f_classif, k=9)
 X_UVFS = UVFS_Selector.fit_transform(X_train, y_train)
 X_UVFS_test = UVFS_Selector.transform(X_test)
 

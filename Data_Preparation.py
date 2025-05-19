@@ -26,8 +26,7 @@ label = "FiErg"
 features = ["KT","Inst", "Adr",  "Ort", "Typ", "RWStatus", "Akt", "SL", "WB", "AnzStand","SA","PtageStatT","AustStatT","NeugStatT","Ops","Gebs","CMIb","CMIn",
             "pPatWAU","pPatWAK", "pPatLKP","pPatHOK","PersA","PersP","PersMT","PersT","PersAFall","PersPFall","PersMTFall","PersTFall","AnzBelA","AnzBelP (nur ab KZP2010)"]
 
-#for all years
-#features.append("JAHR")
+
 data["JAHR"] = data["JAHR"].astype("object")
 
 
@@ -57,7 +56,7 @@ data = data.drop(columns=["SA"])
 features.remove("SA")
 
 
-#Dropping Columns with 100% Missing Data
+#Dropping Columns with 100% Missing Data (none in all years)
 #columns to drop
 columns_to_drop = [i for i in features if data[i].isna().sum() == len(data[i])]
 
