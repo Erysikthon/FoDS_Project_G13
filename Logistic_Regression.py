@@ -54,11 +54,10 @@ X_train[cat_features] = X_train[cat_features].astype('category')
 X_test[cat_features] = X_test[cat_features].astype('category')
 
 #********************************************** ENCODING *******************************************************************
-encoding = input("One Hot Encoding or Target Encoding? (Answer with OHE or TE)")
+encoding = input("One Hot Encoding or Target Encoding? (Answer with OHE or TE) ")
 
-if encoding == "OHE":
 ######################### ONE HOT ENCODING ##################################################################
-
+if encoding == "OHE":
     X_train = pd.get_dummies(X_train, columns=cat_features, drop_first=True)
 
     X_test = pd.get_dummies(X_test, columns=cat_features, drop_first=True)
@@ -170,8 +169,7 @@ print("Total number of features (LR):", X_train.shape[1])
 ##################### FEATURE SELECTION ###############################################################################
 
 #Univariate FS
-UVFS_Selector = SelectKBest(score_func = f_classif, k=20)
-
+UVFS_Selector = SelectKBest(score_func=f_classif, k=15)
 X_UVFS = UVFS_Selector.fit_transform(X_train, y_train)
 X_UVFS_test = UVFS_Selector.transform(X_test)
 
@@ -235,7 +233,7 @@ clf_LR_L1.fit(X_train, y_train)
 best_L1_model = clf_LR_L1.best_estimator_
 
 n_used_features = np.sum(best_L1_model.coef_ != 0)
-print(f"Number of features used (L1):\n {n_used_features}")
+print(f"Number of features used (L1): {n_used_features}")
 
 print("Best parameters (L1):\n", clf_LR_L1.best_params_)
 
@@ -388,53 +386,42 @@ print(df_performance)
 ##################################### PLOTS ############################################################################
 os.makedirs('output', exist_ok=True)
 
-#Accuracy
-df_performance[['accuracy']].plot(kind='bar', figsize=(15, 12))
-plt.title('Performance Comparison of Models with All vs Selected Features')
-plt.ylabel('Accuracy')
-plt.xticks(rotation=45)
-plt.ylim([0, 1])
-plt.grid(True, axis='y', linestyle='--')
-plt.show()
-#plt.savefig('../output/LR_Accuracy.png')
-
-#new
 custom_color = ['#D55E00', '#D55E00','#0072B2', '#0072B2','#009E73', '#009E73', '#CC79A7', '#CC79A7','#E69F00', '#E69F00']
 
-
-#Plot the bar chart using plt.bar instead of df.plot,
+#Accuracy
 plt.figure(figsize=(10, 6))
 x_pos = range(len(df_performance['accuracy']))  # x positions for the bars
 plt.bar(x_pos, df_performance['accuracy'], color=custom_color, width=0.5)  # Use custom_color for each bar
-
-#plot labels
 plt.title('Performance Comparison of Models with All vs Selected Features')
 plt.ylabel('Accuracy')
 plt.xticks(x_pos, df_performance.index, rotation=45)  # Set x-axis labels
 plt.ylim([0, 1])
 plt.grid(True, axis='y', linestyle='--')
 plt.tight_layout()
-
-
-#Show the plot,
 plt.show()
 
 #F1-Score
-df_performance[['f1']].plot(kind='bar', figsize=(15, 12), color='teal')
-plt.title('F1-Score Comparison of Models with All vs Selected Features')
-plt.ylabel('F1-Score')
-plt.xticks(rotation=45)
-plt.ylim([0, 1])  # F1-Score ranges between 0 and 1
+plt.figure(figsize=(10, 6))
+x_pos = range(len(df_performance['f1']))
+plt.bar(x_pos, df_performance['f1'], color=custom_color, width=0.5)
+plt.title('Performance Comparison of Models with All vs Selected Features')
+plt.ylabel('f1')
+plt.xticks(x_pos, df_performance.index, rotation=45)
+plt.ylim([0, 1])
 plt.grid(True, axis='y', linestyle='--')
+plt.tight_layout()
 plt.show()
 
 #ROC-AUC BAR PLOT
-df_performance[['roc_auc']].plot(kind='bar', figsize=(15, 12), color='orange')
-plt.title('ROC-AUC Comparison of Models with All vs Selected Features')
-plt.ylabel('ROC-AUC')
-plt.xticks(rotation=45)
-plt.ylim([0.5, 1])  # ROC-AUC ranges between 0.5 (random) and 1 (perfect)
+plt.figure(figsize=(10, 6))
+x_pos = range(len(df_performance['roc_auc']))
+plt.bar(x_pos, df_performance['roc_auc'], color=custom_color, width=0.5)
+plt.title('Performance Comparison of Models with All vs Selected Features')
+plt.ylabel('roc_auc')
+plt.xticks(x_pos, df_performance.index, rotation=45)
+plt.ylim([0, 1])
 plt.grid(True, axis='y', linestyle='--')
+plt.tight_layout()
 plt.show()
 
 #ROC-AUC Plot for Test SEt
@@ -471,7 +458,7 @@ roc_auc_rfe = auc(fpr_rfe, tpr_rfe)
 plt.plot(fpr_rfe, tpr_rfe, lw=2, label=f'LogReg+RFE (AUC = {roc_auc_rfe:.2f})')
 
 
-
+#ROC Curve
 plt.plot([0, 1], [0, 1], color='gray', lw=2, linestyle='--', label='Chance')
 
 plt.xlim([0.0, 1.0])
@@ -486,13 +473,17 @@ plt.savefig("output/LR_ROC_Curve.png")
 
 
 #Precision
-df_performance[['precision']].plot(kind='bar', figsize=(15, 12), color='green')
-plt.title('Precision Comparison of Models with All vs Selected Features')
-plt.ylabel('Precision')
-plt.xticks(rotation=45)
+plt.figure(figsize=(10, 6))
+x_pos = range(len(df_performance['precision']))
+plt.bar(x_pos, df_performance['precision'], color=custom_color, width=0.5)
+plt.title('Performance Comparison of Models with All vs Selected Features')
+plt.ylabel('precision')
+plt.xticks(x_pos, df_performance.index, rotation=45)
 plt.ylim([0, 1])
 plt.grid(True, axis='y', linestyle='--')
+plt.tight_layout()
 plt.show()
+
 
 
 

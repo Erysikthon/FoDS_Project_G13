@@ -76,10 +76,6 @@ for col in columns_to_drop:
 num_features = data[features].select_dtypes("number").columns
 cat_features = data[features].select_dtypes(exclude=["number"]).columns
 
-print('Unique variables per categorical column:')
-for col in cat_features:  # Iterate through each categorical column
-    print(f'{col}: {data[col].nunique()} unique values')
-
 
 #Dropping Missing Data in label column
 data = data.dropna(subset=['FiErg'])
