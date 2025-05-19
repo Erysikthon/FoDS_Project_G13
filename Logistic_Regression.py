@@ -16,7 +16,7 @@ from sklearn.feature_selection import RFE
 from sklearn.feature_selection import RFECV
 import os
 from sklearn.model_selection import KFold
-
+from sklearn.impute import KNNImputer
 
 
 
@@ -49,11 +49,15 @@ for i in X_train[num_features]:
     X_train[i] = X_train[i].fillna(X_train[i].mean())
     X_test[i] = X_test[i].fillna(X_train[i].mean())      # To ensure consistency with X_train's mean
 
+#Alternative -> K-Nearest Neighbors (made model performance slightly worse)
+#knn_imputer = KNNImputer(n_neighbors=5, weights="uniform")
+#X_train[num_features] = knn_imputer.fit_transform(X_train[num_features])
+#X_test[num_features] = knn_imputer.transform(X_test[num_features])
 
+#********************************************** ENCODING *******************************************************************
 X_train[cat_features] = X_train[cat_features].astype('category')
 X_test[cat_features] = X_test[cat_features].astype('category')
 
-#********************************************** ENCODING *******************************************************************
 encoding = input("One Hot Encoding or Target Encoding? (Answer with OHE or TE) ")
 
 ######################### ONE HOT ENCODING ##################################################################
@@ -169,7 +173,7 @@ print("Total number of features (LR):", X_train.shape[1])
 ##################### FEATURE SELECTION ###############################################################################
 
 #Univariate FS
-UVFS_Selector = SelectKBest(score_func=f_classif, k=9)
+UVFS_Selector = SelectKBest(score_func=f_classif, k=10)
 X_UVFS = UVFS_Selector.fit_transform(X_train, y_train)
 X_UVFS_test = UVFS_Selector.transform(X_test)
 
@@ -222,8 +226,8 @@ clf_LR_L1 = GridSearchCV(
     LogisticRegression(random_state=10, class_weight='balanced'),
     param_grid,
     cv=5 ,
-    scoring='balanced_accuracy',
-    #scoring ='roc_auc'
+    #scoring='balanced_accuracy',
+    scoring ='roc_auc'
 )
 
 # Fit GridSearchCV to training data
@@ -284,8 +288,8 @@ clf_LR_L2 = GridSearchCV(
     LogisticRegression(random_state=10, class_weight='balanced'),
     param_grid,
     cv=5,
-    scoring='balanced_accuracy'
-    #scoring='roc_auc'
+    #scoring='balanced_accuracy'
+    scoring='roc_auc'
 )
 
 clf_LR_L2.fit(X_train, y_train)
@@ -318,9 +322,9 @@ plt.savefig(file_path, dpi=300)
 
 
 # Evaluation of the reduced feature model
-df_performance.loc['LR (test,L2)', :] = eval_Performance(y_test, X_test, clf_LR_L2,
+df_performance.loc['LR (test,L2)', :] = eval_Performance(y_test, X_test, best_L2_model,
                                                               clf_name='LR_L2')
-df_performance.loc['LR (train,L2)', :] = eval_Performance(y_train, X_train, clf_LR_L2,
+df_performance.loc['LR (train,L2)', :] = eval_Performance(y_train, X_train, best_L2_model,
                                                                clf_name='LR_L2(train)')
 
 
