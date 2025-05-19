@@ -56,6 +56,7 @@ features.remove("Ort")
 data = data.drop(columns=["SA"])
 features.remove("SA")
 
+
 #Dropping Columns with 100% Missing Data
 #columns to drop
 columns_to_drop = [i for i in features if data[i].isna().sum() == len(data[i])]
