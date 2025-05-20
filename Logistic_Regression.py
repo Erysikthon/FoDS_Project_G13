@@ -209,6 +209,25 @@ coefficients = clf_LR_UVFS.coef_[0]
 for feature, coef in zip(UVFS_selected_features, coefficients):
     print(f"Feature: {feature}, Coefficient: {coef}")
 """
+#Other version
+# Feature Importance
+coefs = clf_LR_UVFS.coef_[0]  # coefficients from the fitted estimator
+coef_rfe = pd.DataFrame({
+    'Feature': UVFS_selected_features,
+    'Importance': np.abs(coefs)  # Only use coefficients for selected features
+}).sort_values(by='Importance', ascending=False)
+
+print("\nTop Important Features (UVFS):")
+print(coef_rfe.head(10))
+
+plt.figure(figsize=(10, 6))
+sns.barplot(x="Importance", y="Feature", data=coef_rfe.head(10))
+plt.title("Top 10 Feature Importances (UVFS)")
+plt.tight_layout()
+
+file_name = 'LR_UVFS_features_top_10.png'
+file_path = os.path.join("output", file_name)
+plt.savefig(file_path, dpi=300)
 
 # Evaluation
 df_performance.loc['LR (test,UVFS)',:] = eval_Performance(y_test, X_UVFS_test, clf_LR_UVFS, clf_name = 'LR_UVFS')
@@ -426,9 +445,10 @@ plt.xticks(x_pos, df_performance.index, rotation=45)
 plt.ylim([0, 1])
 plt.grid(True, axis='y', linestyle='--')
 plt.tight_layout()
-plt.show()
+plt.savefig("output/LR_ROC_Barplot.png")
+#plt.show()
 
-#ROC-AUC Plot for Test SEt
+#ROC-AUC Plot for Test Set
 plt.figure(figsize=(10, 7))
 
 # Logistic Regression (All Features)
