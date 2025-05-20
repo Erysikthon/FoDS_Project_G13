@@ -29,6 +29,7 @@ features = ["KT","Inst", "Adr",  "Ort", "Typ", "RWStatus", "Akt", "SL", "WB", "A
 data["JAHR"] = data["JAHR"].astype("object")
 
 
+
 #New data declaration
 if current_year == "all":
     data = data[features + [label] + ["JAHR"]]
@@ -101,7 +102,7 @@ data = data.dropna(subset=['FiErg'])
 #data[label] = data[label].apply(lambda x: 0 if x < 0 else 1)
 
 
-print('Shape of modified data set;', data.shape)
+
 
 #LABEL BALANCE CHECK
 print(data[label].value_counts(normalize=True))
