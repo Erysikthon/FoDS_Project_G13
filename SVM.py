@@ -6,7 +6,7 @@ from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder, OrdinalEncoder
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-import shap
+
 import matplotlib.pyplot as plt
 import seaborn as sns
 
