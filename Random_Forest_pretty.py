@@ -161,7 +161,12 @@ sorted_lists = sorted(lists, key=lambda x: x[1], reverse=True)
 df_importances = pd.DataFrame(sorted_lists, columns=['Feature', 'Importance'])
 # Print the DataFrame
 print(df_importances.head(10))
-
+top_features = df_importances.head(10)
+plt.figure(figsize=(10, 6))
+plt.title(f'Top 10 Most Relevant Features')
+plt.xlabel('Importance')
+plt.ylabel('Feature')
+plt.savefig('output/RF_Top_10_Features.png')
                                                                                                         #maybe feature importance plot
 
 ####################################### RF with UVFS ########################################################
@@ -176,7 +181,7 @@ print("Selected features (UVFS):", selected_features)
 
 
 #Optimal n_estimators
-n_estimators = [5, 10, 50, 100, 105,106,107, 150]
+n_estimators = [5, 10, 50, 100, 150, 200, 250, 300]
 best_roc_auc = 0
 best_n_estimators = None
 
