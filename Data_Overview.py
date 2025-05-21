@@ -9,6 +9,14 @@ df = pd.read_csv("data/kzp-2008-2020-timeseries.csv", encoding="latin-1")
 print('Shape of initial data set: ', df.shape)
 print('Data types;', df.dtypes.unique())
 
+#Total Missing Data
+total_missing = df.isnull().sum().sum()  # Count total missing values
+total_entries = df.size  # Total number of entries (rows * columns)
+missing_percentage = (total_missing / total_entries) * 100  # Calculate missing percentage
+
+print(f"Missing Data Percentage: {missing_percentage:.2f}%")
+
+
 #SPECIFIC YEAR
 current_year = "all"       #change this for individual year analysis, for all year -> "all"
 
@@ -101,7 +109,12 @@ data = data.dropna(subset=['FiErg'])
 #Transforming label to 0/1
 #data[label] = data[label].apply(lambda x: 0 if x < 0 else 1)
 
+#Total Missing Data
+total_missing = data.isnull().sum().sum()  # Count total missing values
+total_entries = data.size  # Total number of entries (rows * columns)
+missing_percentage = (total_missing / total_entries) * 100  # Calculate missing percentage
 
+print(f"Missing Data Percentage (new data): {missing_percentage:.2f}%")
 
 
 #LABEL BALANCE CHECK
