@@ -18,8 +18,6 @@ import shap
 import optuna
 from Data_Preparation import df
 
-from sklearn.feature_selection import SelectKBest, f_classif
-
 tt_size = 0.2
 
 n_ftrs = 10
@@ -112,28 +110,6 @@ class DataPreprocessor:
             raise ValueError("Preprocessor must be fitted before getting feature names")
         cat_feature_names = self.onehot.get_feature_names_out(self.categorical_features)
         return self.numerical_features + list(cat_feature_names)
-
-class FeatureSelector:
-    def __init__(self, k):
-        self.k = k
-        self.selector = SelectKBest(score_func=f_classif, k=k)
-        self.is_fitted = False
-
-    def fit(self, X, y):
-        self.selector.fit(X, y)
-        self.is_fitted = True
-        return self
-
-    def transform(self, X):
-        if not self.is_fitted:
-            raise ValueError("FeatureSelector must be fitted first.")
-        return self.selector.transform(X)
-
-    def fit_transform(self, X, y):
-        return self.fit(X, y).transform(X)
-
-    def get_support(self):
-        return self.selector.get_support()
 
 class SVCModelTrainer:
     """Unified SVC model trainer for different kernels"""
