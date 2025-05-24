@@ -1,4 +1,6 @@
+"""
 
+"""
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -382,10 +384,8 @@ def main():
 
     trainer = SVCModelTrainer(preprocessor)
 
-    # Feature selection --- ANPASSEN
-    slc = SelectKBest
-    X_train = slc.fit_transform(X_train, y_train)
-    X_test = slc.transform(X_test)
+    # X_train = preprocessor.fit_transform(X_train, y_train)
+    # X_test = preprocessor.transform(X_test)
 
 
     optimizer = OptunaOptimizer(X_train, y_train, numerical_features, categorical_features)
