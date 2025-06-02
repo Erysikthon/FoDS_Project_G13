@@ -509,5 +509,9 @@ plt.tight_layout()
 plt.show()
 
 
+pd.set_option('display.float_format', '{:.3f}'.format)
+print(df_performance)
+pd.reset_option('display.float_format')
+
 
 
