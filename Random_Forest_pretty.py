@@ -1,12 +1,30 @@
 from sklearn.ensemble import RandomForestClassifier
 import seaborn as sns
 from sklearn.metrics import classification_report
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import f1_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.metrics import roc_curve, auc
 from Data_Preparation import *
 
+#FUNCTIONS FOR EVALUATION
+def eval_Performance(y_eval, X_eval, clf, clf_name = 'My Classifier'):
+
+    y_pred = clf.predict(X_eval)
+    y_pred_proba = clf.predict_proba(X_eval)[:, 1]
+    tn, fp, fn, tp = confusion_matrix(y_eval, y_pred).ravel()
+
+    # Evaluation
+    accuracy  = accuracy_score(y_eval, y_pred)
+    precision = precision_score(y_eval, y_pred)
+    recall    = recall_score(y_eval, y_pred)
+    f1        = f1_score(y_eval, y_pred)
+    fp_rates, tp_rates, _ = roc_curve(y_eval, y_pred_proba)
+
+    #Area under the roc curve
+    roc_auc = auc(fp_rates, tp_rates)
+
+    return tp,fp,tn,fn,accuracy, precision, recall, f1, roc_auc
+df_performance = pd.DataFrame(columns = ['tp','fp','tn','fn','accuracy', 'precision', 'recall', 'f1', 'roc_auc'] )
 ####################### SPLITTING DATA ####################################################
 X = data[features]
 y = data[label]
@@ -69,7 +87,7 @@ sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=["No", "Yes"], yt
 plt.xlabel('Predicted')
 plt.ylabel('Actual')
 plt.title('Confusion Matrix')
-plt.show()
+#plt.show()
 
 #AUC / ROC
 fp_rates, tp_rates, _ = roc_curve(y_test, y_pred_proba)
@@ -118,6 +136,7 @@ for n in n_estimators:
 
 print(f"Best n_estimators: {best_n_estimators}, Best AUC: {best_roc_auc:.4f}")
 
+
 # Adjusted model
 Random_Forest = RandomForestClassifier(n_estimators=best_n_estimators,
                                      class_weight="balanced",
@@ -128,6 +147,21 @@ Random_Forest.fit(X_train, y_train)
 y_pred = Random_Forest.predict(X_test)
 y_pred_proba = Random_Forest.predict_proba(X_test)[:, 1]
 
+df_performance.loc['RF (test)',:] = eval_Performance(y_test, X_test, Random_Forest, clf_name ='RF (test)')
+df_performance.loc['RF (train)',:] = eval_Performance(y_train, X_train, Random_Forest, clf_name ='RF (train)')
+
+
+#
+plt.figure(figsize=(10, 6))
+x_pos = range(len(df_performance['roc_auc']))
+plt.bar(x_pos, df_performance['roc_auc'], width=0.5)
+plt.title('Performance on Train vs Test set')
+plt.ylabel('roc_auc')
+plt.xticks(x_pos, df_performance.index, rotation=45)
+plt.ylim([0, 1])
+plt.grid(True, axis='y', linestyle='--')
+plt.tight_layout()
+plt.savefig("output/RF_ROC_Barplot.png")
 
 #AUC / ROC
 fp_rates, tp_rates, _ = roc_curve(y_test, y_pred_proba)
@@ -163,14 +197,16 @@ df_importances = pd.DataFrame(sorted_lists, columns=['Feature', 'Importance'])
 print(df_importances.head(10))
 top_features = df_importances.head(10)
 plt.figure(figsize=(10, 6))
+sns.barplot(x='Importance', y='Feature', data=top_features)
 plt.title(f'Top 10 Most Relevant Features')
 plt.xlabel('Importance')
 plt.ylabel('Feature')
 plt.savefig('output/RF_Top_10_Features.png')
+
                                                                                                         #maybe feature importance plot
 
 ####################################### RF with UVFS ########################################################
-UVFS_Selector = SelectKBest(score_func=f_classif, k=40) ############################## different k maybe?????????????????????
+UVFS_Selector = SelectKBest(score_func=f_classif, k=50) ############################## different k maybe?????????????????????
 X_UVFS = UVFS_Selector.fit_transform(X_train, y_train)
 X_UVFS_test = UVFS_Selector.transform(X_test)
 
