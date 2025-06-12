@@ -85,6 +85,7 @@ def analyze_missing_patterns(df):
     plt.show()
 
     # Checking if missingness in one variable depends on other variables
+"""
     for col in df.columns:
         if df[col].isnull().any():
             # Comparing means of other numeric columns when this column is missing vs not missing
@@ -99,7 +100,7 @@ def analyze_missing_patterns(df):
                     print(f"{other_col}:")
                     print(f"  Mean when {col} is not missing: {not_missing_mean:.2f}")
                     print(f"  Mean when {col} is missing: {missing_mean:.2f}")
-
+"""
 
 analyze_missing_patterns(data)
 
