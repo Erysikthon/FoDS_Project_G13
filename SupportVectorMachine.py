@@ -350,7 +350,7 @@ def plot_shap(X_test_processed, feature_names, shap_values, model_type):
         shap.summary_plot(shap_vals, shap_data, feature_names=feature_names, show=False)
         plt.title(f"SHAP Summary Plot - {model_type}")
         plt.tight_layout()
-        plt.savefig(f'{model_type}_shap_values.png', dpi=300, bbox_inches='tight')
+        plt.savefig(f'output/{model_type}_shap_values.png', dpi=300, bbox_inches='tight')
         plt.close()
         print(f"SHAP values plotted for {model_type}")
     except Exception as e:
@@ -388,7 +388,7 @@ def plot_feature_importance(feature_names, shap_values, model_type, n_ftrs=10):
         sns.barplot(data=feature_importance_df.head(n_ftrs), x='Importance', y='Feature')
         plt.title(f'Top {n_ftrs} Feature Importances - {model_type}')
         plt.tight_layout()
-        plt.savefig(f'{model_type}_features_top-{n_ftrs}.png', dpi=300, bbox_inches='tight')
+        plt.savefig(f'output/{model_type}_features_top-{n_ftrs}.png', dpi=300, bbox_inches='tight')
         plt.close()
         print(f"Feature importance plot saved for {model_type}")
     except Exception as e:
@@ -413,7 +413,7 @@ def evaluation(y_true, y_pred, model_type, data_type="Test"):
     plt.ylabel('True Labels')
     plt.title(f'Confusion Matrix - {model_type} ({data_type})')
     plt.tight_layout()
-    plt.savefig(f'confusion_matrix_{model_type}_{data_type.lower()}.png', dpi=300, bbox_inches='tight')
+    plt.savefig(f'output/confusion_matrix_{model_type}_{data_type.lower()}.png', dpi=300, bbox_inches='tight')
     plt.close()
 
     return cm
@@ -434,7 +434,7 @@ def draw_auc(model_type, y_test_final, y_score):
     plt.title(f'Receiver Operating Characteristic - {model_type}')
     plt.legend(loc='lower right')
     plt.tight_layout()
-    plt.savefig(f'roc_curve_{model_type}.png', dpi=300, bbox_inches='tight')
+    plt.savefig(f'output/roc_curve_{model_type}.png', dpi=300, bbox_inches='tight')
     plt.close()
 
 def draw_auc_all_models(models, y_tests, y_scores):
@@ -455,7 +455,7 @@ def draw_auc_all_models(models, y_tests, y_scores):
     plt.legend(loc='lower right')
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.savefig('roc_curve_comparison_all_models.png', dpi=300, bbox_inches='tight')
+    plt.savefig('output/roc_curve_comparison_all_models.png', dpi=300, bbox_inches='tight')
     plt.close()
     print("ROC comparison plot saved")
 
