@@ -13,12 +13,7 @@ y = data[label]
 
 yeares = data["JAHR"]
 
-#for all years
-if current_year == "all":
-    stratify_col = y.astype(str) + "_" + yeares.astype(str)
-
-else:
-    stratify_col = y
+stratify_col = y.astype(str) + "_" + yeares.astype(str)
 
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=10, stratify= stratify_col)
@@ -80,9 +75,8 @@ Random_Forest.fit(X_train, y_train)
 df_performance.loc['RF (test)',:] = eval_Performance(y_test, X_test, Random_Forest, clf_name ='RF')
 df_performance.loc['RF (train)',:] = eval_Performance(y_train, X_train, Random_Forest, clf_name ='RF (train)')
 
-print(df_performance)
 
-
+#for plot
 y_pred = Random_Forest.predict(X_test)
 y_pred_proba = Random_Forest.predict_proba(X_test)[:, 1]
 
@@ -150,12 +144,13 @@ Random_Forest = RandomForestClassifier(n_estimators=best_n_estimators,
                                      random_state=42)
 Random_Forest.fit(X_train, y_train)
 
-# Model Prediction
+df_performance.loc['RF w tuning (test)',:] = eval_Performance(y_test, X_test, Random_Forest, clf_name ='RF tuned')
+df_performance.loc['RF w tuning (train)',:] = eval_Performance(y_train, X_train, Random_Forest, clf_name ='RF tuned (train)')
+
+
+#for plot
 y_pred = Random_Forest.predict(X_test)
 y_pred_proba = Random_Forest.predict_proba(X_test)[:, 1]
-
-df_performance.loc['RF (test)',:] = eval_Performance(y_test, X_test, Random_Forest, clf_name ='RF (test)')
-df_performance.loc['RF (train)',:] = eval_Performance(y_train, X_train, Random_Forest, clf_name ='RF (train)')
 
 
 #
@@ -252,6 +247,12 @@ rf_uvfs = RandomForestClassifier(n_estimators=best_n_estimators,
                                  random_state=42)
 rf_uvfs.fit(X_UVFS, y_train)
 
+df_performance.loc['RF UVFS (test)',:] = eval_Performance(y_test, X_UVFS_test, rf_uvfs, clf_name ='RF UVFS')
+df_performance.loc['RF UVFS (train)',:] = eval_Performance(y_train, X_UVFS, rf_uvfs, clf_name ='RF UVFS (train)')
+
+print(df_performance)
+
+#for plot
 y_pred = rf_uvfs.predict(X_UVFS_test)
 y_pred_proba = rf_uvfs.predict_proba(X_UVFS_test)[:, 1]
 
