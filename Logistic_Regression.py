@@ -1,5 +1,6 @@
 from sklearn.model_selection import train_test_split
-from Data_Preparation import *
+#from Data_Preparation import *
+from Data_Preparation import data, features, label, cat_features, num_features
 from sklearn.preprocessing import StandardScaler
 import pandas as pd
 import numpy as np
@@ -26,12 +27,7 @@ y = data[label]
 
 yeares = data["JAHR"]
 
-#for all years
-if current_year == "all":
-    stratify_col = y.astype(str) + "_" + yeares.astype(str)
-
-else:
-    stratify_col = y
+stratify_col = y.astype(str) + "_" + yeares.astype(str)
 
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=10, stratify= stratify_col)  #stratication over years and label
@@ -58,78 +54,77 @@ for i in X_train[num_features]:
 X_train[cat_features] = X_train[cat_features].astype('category')
 X_test[cat_features] = X_test[cat_features].astype('category')
 
-encoding = input("One Hot Encoding or Target Encoding? (Answer with OHE or TE) ")
 
 ######################### ONE HOT ENCODING ##################################################################
+"""
 if encoding == "OHE":
     X_train = pd.get_dummies(X_train, columns=cat_features, drop_first=True)
 
     X_test = pd.get_dummies(X_test, columns=cat_features, drop_first=True)
     X_test = X_test.reindex(columns=X_train.columns, fill_value=0)
+"""
 
-########################## ALTERNATIVE -> TARGET ENCODING ##########################################################
-elif encoding == "TE":
-    def target_encode_feature(train_series, test_series, target, n_splits=5, alpha=5):
-        # Initialize KFold
-        kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
+########################## ALTERNATIVE ##########################################################
 
-        # Converting series to numpy arrays to avoid categorical dtype issues
-        train_encoded = np.zeros(len(train_series))
-        test_encoded = np.zeros(len(test_series))
+def target_encode_feature(train_series, test_series, target, n_splits=5, alpha=5):
+    # Initialize KFold
+    kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
 
-        # Global mean for smoothing and handling unseen categories
-        global_mean = target.mean()
+    # Converting series to numpy arrays to avoid categorical dtype issues
+    train_encoded = np.zeros(len(train_series))
+    test_encoded = np.zeros(len(test_series))
 
-        # k-fold target encoding
-        for train_idx, val_idx in kf.split(train_series):
-            # Get current fold data
-            fold_train = train_series.iloc[train_idx]
-            fold_val = train_series.iloc[val_idx]
-            fold_target = target.iloc[train_idx]
+    # Global mean for smoothing and handling unseen categories
+    global_mean = target.mean()
 
-            # Calculating means for each category with smoothing
-            category_means = {}
-            for category in fold_train.unique():
-                cat_idx = fold_train == category
-                n = cat_idx.sum()
-                cat_mean = fold_target[cat_idx].mean()
-                # Apply smoothing
-                category_means[category] = (cat_mean * n + global_mean * alpha) / (n + alpha)
+    # k-fold target encoding
+    for train_idx, val_idx in kf.split(train_series):
+        # Get current fold data
+        fold_train = train_series.iloc[train_idx]
+        fold_val = train_series.iloc[val_idx]
+        fold_target = target.iloc[train_idx]
 
-            #Apply encoding
-            for category, mean_value in category_means.items():
-                train_encoded[val_idx[fold_val == category]] = mean_value
-            # Fill unseen categories with global mean
-            train_encoded[val_idx[~fold_val.isin(category_means.keys())]] = global_mean
-
-        # Encode test set using all training data
+        # Calculating means for each category with smoothing
         category_means = {}
-        for category in train_series.unique():
-            cat_idx = train_series == category
+        for category in fold_train.unique():
+            cat_idx = fold_train == category
             n = cat_idx.sum()
-            cat_mean = target[cat_idx].mean()
+            cat_mean = fold_target[cat_idx].mean()
+            # Apply smoothing
             category_means[category] = (cat_mean * n + global_mean * alpha) / (n + alpha)
 
-        # Apply encoding to test set
+        #Apply encoding
         for category, mean_value in category_means.items():
-            test_encoded[test_series == category] = mean_value
+            train_encoded[val_idx[fold_val == category]] = mean_value
         # Fill unseen categories with global mean
-        test_encoded[~test_series.isin(category_means.keys())] = global_mean
+        train_encoded[val_idx[~fold_val.isin(category_means.keys())]] = global_mean
 
-        return train_encoded, test_encoded
+    # Encode test set using all training data
+    category_means = {}
+    for category in train_series.unique():
+        cat_idx = train_series == category
+        n = cat_idx.sum()
+        cat_mean = target[cat_idx].mean()
+        category_means[category] = (cat_mean * n + global_mean * alpha) / (n + alpha)
+
+    # Apply encoding to test set
+    for category, mean_value in category_means.items():
+        test_encoded[test_series == category] = mean_value
+    # Fill unseen categories with global mean
+    test_encoded[~test_series.isin(category_means.keys())] = global_mean
+
+    return train_encoded, test_encoded
 
 
-    # Apply target encoding to each categorical feature
-    for feature in cat_features:
-        X_train[feature], X_test[feature] = target_encode_feature(
-            X_train[feature],
-            X_test[feature],
-            y_train
-        )
+# Apply target encoding to each categorical feature
+for feature in cat_features:
+    X_train[feature], X_test[feature] = target_encode_feature(
+        X_train[feature],
+        X_test[feature],
+        y_train
+    )
 
-else:
-    print("Invalid input. Please enter 'OHE' or 'TE'. ")
-    exit()
+
 
 #######################  SCALING (after splitting!!) ###############################################################
 sc = StandardScaler()
@@ -160,7 +155,7 @@ df_performance = pd.DataFrame(columns = ['tp','fp','tn','fn','accuracy', 'precis
 
 
 
-##################### MODEL TRAINING ##################################################################################
+##################### BASIC MODEL TRAINING ##################################################################################
 clf_LR = LogisticRegression(random_state=10, class_weight='balanced')
 clf_LR.fit(X_train, y_train)
 
@@ -173,7 +168,7 @@ print("Total number of features (LR):", X_train.shape[1])
 ##################### FEATURE SELECTION ###############################################################################
 
 #Univariate FS
-UVFS_Selector = SelectKBest(score_func=f_classif, k=10)
+UVFS_Selector = SelectKBest(score_func=f_classif, k=10) # manually found best k (based on n features of the other FS techniques)
 X_UVFS = UVFS_Selector.fit_transform(X_train, y_train)
 X_UVFS_test = UVFS_Selector.transform(X_test)
 
@@ -197,19 +192,11 @@ plt.xticks(X_indices, UVFS_selected_features, rotation=90)  # Use only selected 
 plt.tight_layout()
 plt.show()
 
-
-
-# Evaluate performance using only k top features
+# Evaluating performance using only k top features
 clf_LR_UVFS = LogisticRegression(random_state=10, class_weight='balanced')
 clf_LR_UVFS.fit(X_UVFS, y_train)
 
-#Coefficients of top k features
-"""
-coefficients = clf_LR_UVFS.coef_[0]
-for feature, coef in zip(UVFS_selected_features, coefficients):
-    print(f"Feature: {feature}, Coefficient: {coef}")
-"""
-#Other version
+
 # Feature Importance
 coefs = clf_LR_UVFS.coef_[0]  # coefficients from the fitted estimator
 coef_rfe = pd.DataFrame({
@@ -232,7 +219,6 @@ plt.savefig(file_path, dpi=300)
 # Evaluation
 df_performance.loc['LR (test,UVFS)',:] = eval_Performance(y_test, X_UVFS_test, clf_LR_UVFS, clf_name = 'LR_UVFS')
 df_performance.loc['LR (train,UVFS)',:] = eval_Performance(y_train, X_UVFS, clf_LR_UVFS, clf_name = 'LR_UVFS (train)')
-
 
 
 #L1 REGULARIZATION
@@ -261,7 +247,7 @@ print(f"Number of features used (L1): {n_used_features}")
 print("Best parameters (L1):\n", clf_LR_L1.best_params_)
 
 # Feature Importance
-coefs = best_L1_model.coef_[0]  # Get coefficients from the model
+coefs = best_L1_model.coef_[0]  # Getting coefficients from the model
 coef_L1 = pd.DataFrame({
     'Feature': X_train.columns,  # Using feature names from X_train
     'Importance': np.abs(coefs)
@@ -286,14 +272,12 @@ df_performance.loc['LR (train,L1)', :] = eval_Performance(y_train, X_train, best
                                                               clf_name='LR_L1 (train)')
 
 
-#Extract selected features
+#Extracting selected features
 L1_selected_features = []
 for col, coef in zip(X_train.columns, best_L1_model.coef_[0]):
     if coef != 0:  # Keep only features with non-zero coefficients
         L1_selected_features.append(col)
 print(f"Selected features (L1):\n {L1_selected_features}")
-
-
 
 
 ############################## L2 REGULARIZATION ###########################################################
@@ -320,7 +304,7 @@ print(f"Number of features used (L2): {n_used_features_L2}")
 print("Best parameters (L2):\n", clf_LR_L2.best_params_)
 
 # Feature Importance
-coefs = best_L2_model.coef_[0]  # Get coefficients from the model
+coefs = best_L2_model.coef_[0]  # Getting coefficients from the model
 coef_L1 = pd.DataFrame({
     'Feature': X_train.columns,  # Using feature names from X_train
     'Importance': np.abs(coefs)
@@ -339,7 +323,6 @@ file_path = os.path.join("output", file_name)
 plt.savefig(file_path, dpi=300)
 
 
-
 # Evaluation of the reduced feature model
 df_performance.loc['LR (test,L2)', :] = eval_Performance(y_test, X_test, best_L2_model,
                                                               clf_name='LR_L2')
@@ -347,15 +330,10 @@ df_performance.loc['LR (train,L2)', :] = eval_Performance(y_train, X_train, best
                                                                clf_name='LR_L2(train)')
 
 
-#Coefficients of selected features
-
-#for feature, coef in zip(L1_selected_features, best_L2_model.coef_[0]):
-#    print(f"Feature: {feature}, Coefficient: {coef}")
-
-#Extract selected features
+#Extracting selected features
 L2_selected_features = []
 for col, coef in zip(X_train.columns, best_L2_model.coef_[0]):
-    if coef != 0:  # Keep only features with non-zero coefficients
+    if coef != 0:  # Keeping only features with non-zero coefficients
         L2_selected_features.append(col)
 print(f"Selected features (L1): \n {L2_selected_features}")
 
@@ -368,16 +346,15 @@ rfe_cv = RFECV(estimator=log_reg, step=1, cv=5, scoring='roc_auc')
 rfe_cv.fit(X_train, y_train)
 
 
-
 df_performance.loc['LR (test,RFE_CV)', :] = eval_Performance(y_test, X_test, rfe_cv,
                                                              clf_name='LR_rfe_cv')
 df_performance.loc['LR (train,RFE_CV)', :] = eval_Performance(y_train, X_train, rfe_cv,
                                                               clf_name='LR_rfe_cv (train)')
 
-# Print optimal number of features
+# Printing optimal number of features
 print(f"Optimal number of features (RFE): {rfe_cv.n_features_}")
 
-# Get the features selected
+# Getting the features selected
 rfe_selected_features = X_train.columns[rfe_cv.support_]
 print(f"Selected features (RFE): \n {list(rfe_selected_features)}")
 
@@ -414,10 +391,10 @@ custom_color = ['#D55E00', '#D55E00','#0072B2', '#0072B2','#009E73', '#009E73', 
 #Accuracy
 plt.figure(figsize=(10, 6))
 x_pos = range(len(df_performance['accuracy']))  # x positions for the bars
-plt.bar(x_pos, df_performance['accuracy'], color=custom_color, width=0.5)  # Use custom_color for each bar
+plt.bar(x_pos, df_performance['accuracy'], color=custom_color, width=0.5)  # custom_color for each bar
 plt.title('Performance Comparison of Models with All vs Selected Features')
 plt.ylabel('Accuracy')
-plt.xticks(x_pos, df_performance.index, rotation=45)  # Set x-axis labels
+plt.xticks(x_pos, df_performance.index, rotation=45)
 plt.ylim([0, 1])
 plt.grid(True, axis='y', linestyle='--')
 plt.tight_layout()
@@ -481,7 +458,6 @@ fpr_rfe, tpr_rfe, _ = roc_curve(y_test, y_score_rfe)
 roc_auc_rfe = auc(fpr_rfe, tpr_rfe)
 plt.plot(fpr_rfe, tpr_rfe, lw=2, label=f'LogReg+RFE (AUC = {roc_auc_rfe:.2f})')
 
-
 #ROC Curve
 plt.plot([0, 1], [0, 1], color='gray', lw=2, linestyle='--', label='Chance')
 
@@ -494,7 +470,6 @@ plt.legend(loc="lower right")
 plt.grid(True, linestyle='--', alpha=0.6)
 plt.tight_layout()
 plt.savefig("output/LR_ROC_Curve.png")
-
 
 #Precision
 plt.figure(figsize=(10, 6))
@@ -509,6 +484,7 @@ plt.tight_layout()
 plt.show()
 
 
+#df performance output for report
 pd.set_option('display.float_format', '{:.3f}'.format)
 print(df_performance)
 pd.reset_option('display.float_format')
