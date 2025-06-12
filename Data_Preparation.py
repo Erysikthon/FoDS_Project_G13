@@ -11,14 +11,7 @@ from sklearn.model_selection import train_test_split
 
 df = pd.read_csv("data/kzp-2008-2020-timeseries.csv", encoding="latin-1")
 
-#SPECIFIY YEAR
-current_year = "all"       #change this for individual year analysis, for all year -> "all"
-
-if current_year != "all":
-    data =df[df["JAHR"]==current_year].copy()
-
-else:
-    data = df.copy()
+data = df.copy()
 
 #LABEL AND FEATURES DECLARATION
 label = "FiErg"
@@ -26,15 +19,12 @@ label = "FiErg"
 features = ["KT","Inst", "Adr",  "Ort", "Typ", "RWStatus", "Akt", "SL", "WB", "AnzStand","SA","PtageStatT","AustStatT","NeugStatT","Ops","Gebs","CMIb","CMIn",
             "pPatWAU","pPatWAK", "pPatLKP","pPatHOK","PersA","PersP","PersMT","PersT","PersAFall","PersPFall","PersMTFall","PersTFall","AnzBelA","AnzBelP (nur ab KZP2010)"]
 
-
+# JAHR data type conversion
 data["JAHR"] = data["JAHR"].astype("object")
 
 
 #New data declaration
-if current_year == "all":
-    data = data[features + [label] + ["JAHR"]]
-else:
-    data = data[features + [label]]
+data = data[features + [label] + ["JAHR"]]
 
 print("New data set shape:", data.shape)
 
@@ -51,24 +41,9 @@ features.remove("Inst")
 data = data.drop(columns=["Ort"])
 features.remove("Ort")
 
-#Dropping SA !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#Dropping SA
 data = data.drop(columns=["SA"])
 features.remove("SA")
-
-
-#Dropping Columns with 100% Missing Data (none in all years)
-#columns to drop
-columns_to_drop = [i for i in features if data[i].isna().sum() == len(data[i])]
-
-#Dropping the columns
-data = data.drop(columns=columns_to_drop)
-
-#Removing dropped columns from features
-features = [i for i in features if i not in columns_to_drop]
-
-#Output dropped columns
-for col in columns_to_drop:
-    print(f"Dropping {col} due to 100% Missing Data")
 
 
 #DECLARING NUM / CAT FEATURES

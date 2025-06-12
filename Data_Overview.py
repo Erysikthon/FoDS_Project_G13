@@ -1,4 +1,4 @@
-from Data_Preparation import *
+#from Data_Preparation import *
 import pandas as pd
 import numpy as np
 import seaborn as sns
@@ -134,7 +134,7 @@ print(f"Missing Data Percentage (new data): {missing_percentage:.2f}%")
 
 
 #LABEL BALANCE CHECK
-print(data[label].value_counts(normalize=True))
+print("Label balance:", data[label].value_counts(normalize=True))
 
 
 
@@ -185,8 +185,6 @@ plt.xlabel('Canton')
 plt.ylabel('Subventions (EtSubv)')
 plt.tight_layout()
 plt.show()
-
-
 
 
 
