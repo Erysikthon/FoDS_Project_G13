@@ -1,7 +1,9 @@
 from Data_Preparation import *
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
 
-#EtSubv
-#correlation kt subventionen
 
 df = pd.read_csv("data/kzp-2008-2020-timeseries.csv", encoding="latin-1")
 
@@ -16,15 +18,9 @@ missing_percentage = (total_missing / total_entries) * 100  # Calculate missing 
 
 print(f"Missing Data Percentage: {missing_percentage:.2f}%")
 
+################################# ADJUSTED DATA SET #############################################
 
-#SPECIFIC YEAR
-current_year = "all"       #change this for individual year analysis, for all year -> "all"
-
-if current_year != "all":
-    data =df[df["JAHR"]==current_year].copy()
-
-else:
-    data = df.copy()
+data = df.copy()
 
 #LABEL AND FEATURES DECLARATION
 label = "FiErg"
@@ -32,17 +28,11 @@ label = "FiErg"
 features = ["KT","Inst", "Adr",  "Ort", "Typ", "RWStatus", "Akt", "SL", "WB", "AnzStand","SA","PtageStatT","AustStatT","NeugStatT","Ops","Gebs","CMIb","CMIn",
             "pPatWAU","pPatWAK", "pPatLKP","pPatHOK","PersA","PersP","PersMT","PersT","PersAFall","PersPFall","PersMTFall","PersTFall","AnzBelA","AnzBelP (nur ab KZP2010)"]
 
-#for all years
-#features.append("JAHR")
+
 data["JAHR"] = data["JAHR"].astype("object")
 
-
-
 #New data declaration
-if current_year == "all":
-    data = data[features + [label] + ["JAHR"]]
-else:
-    data = data[features + [label]]
+data = data[features + [label] + ["JAHR"]]
 
 print("New data set shape:", data.shape)
 
@@ -59,23 +49,9 @@ features.remove("Inst")
 data = data.drop(columns=["Ort"])
 features.remove("Ort")
 
-#Dropping SA !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#Dropping SA
 data = data.drop(columns=["SA"])
 features.remove("SA")
-
-#Dropping Columns with 100% Missing Data
-#columns to drop
-columns_to_drop = [i for i in features if data[i].isna().sum() == len(data[i])]
-
-#Dropping the columns
-data = data.drop(columns=columns_to_drop)
-
-#Removing dropped columns from features
-features = [i for i in features if i not in columns_to_drop]
-
-#Output dropped columns
-for col in columns_to_drop:
-    print(f"Dropping {col} due to 100% Missing Data")
 
 
 #DECLARING NUM / CAT FEATURES
@@ -86,8 +62,48 @@ print('Unique variables per categorical column:')
 for col in cat_features:  # Iterate through each categorical column
     print(f'{col}: {data[col].nunique()} unique values')
 
+######################### MISSING DATA ANALYSIS #########################################################################
 
-#MISSING DATA OVERVIEW
+def analyze_missing_patterns(df):
+
+    # Missing data matrix (True/False)
+    missing_matrix = df.isnull()
+
+    # Visualizing missing data patterns
+    plt.figure(figsize=(20, 14))
+    sns.heatmap(missing_matrix, cmap='viridis', yticklabels=False)
+    plt.title('Missing Data Pattern')
+    plt.xlabel('Variables (Columns)')
+    plt.ylabel('Observations (Rows)')
+    plt.show()
+
+    # Checking for relationships between missing values
+    missing_corr = missing_matrix.corr()
+    plt.figure(figsize=(20, 16))
+    sns.heatmap(missing_corr, annot=True, cmap='coolwarm')
+    plt.title('Correlation of Missing Values')
+    plt.show()
+
+    # Checking if missingness in one variable depends on other variables
+    for col in df.columns:
+        if df[col].isnull().any():
+            # Comparing means of other numeric columns when this column is missing vs not missing
+            missing_mask = df[col].isnull()
+            numeric_cols = df.select_dtypes(include=[np.number]).columns
+
+            print(f"\nAnalyzing missingness in {col}:")
+            for other_col in numeric_cols:
+                if other_col != col:
+                    not_missing_mean = df[~missing_mask][other_col].mean()
+                    missing_mean = df[missing_mask][other_col].mean()
+                    print(f"{other_col}:")
+                    print(f"  Mean when {col} is not missing: {not_missing_mean:.2f}")
+                    print(f"  Mean when {col} is missing: {missing_mean:.2f}")
+
+
+analyze_missing_patterns(data)
+
+
 #Percentage of missing values in Label column
 missing_percentage_label = (data[label].isnull().sum() / len(data[label])) * 100
 print("Missing percentage Label:\n", missing_percentage_label)
