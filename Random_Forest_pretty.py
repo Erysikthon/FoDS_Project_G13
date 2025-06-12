@@ -6,25 +6,7 @@ from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.metrics import roc_curve, auc
 from Data_Preparation import *
 
-#FUNCTIONS FOR EVALUATION
-def eval_Performance(y_eval, X_eval, clf, clf_name = 'My Classifier'):
 
-    y_pred = clf.predict(X_eval)
-    y_pred_proba = clf.predict_proba(X_eval)[:, 1]
-    tn, fp, fn, tp = confusion_matrix(y_eval, y_pred).ravel()
-
-    # Evaluation
-    accuracy  = accuracy_score(y_eval, y_pred)
-    precision = precision_score(y_eval, y_pred)
-    recall    = recall_score(y_eval, y_pred)
-    f1        = f1_score(y_eval, y_pred)
-    fp_rates, tp_rates, _ = roc_curve(y_eval, y_pred_proba)
-
-    #Area under the roc curve
-    roc_auc = auc(fp_rates, tp_rates)
-
-    return tp,fp,tn,fn,accuracy, precision, recall, f1, roc_auc
-df_performance = pd.DataFrame(columns = ['tp','fp','tn','fn','accuracy', 'precision', 'recall', 'f1', 'roc_auc'] )
 ####################### SPLITTING DATA ####################################################
 X = data[features]
 y = data[label]
@@ -69,11 +51,36 @@ sc = StandardScaler()
 X_train[num_features] = sc.fit_transform(X_train[num_features])
 X_test[num_features]  = sc.transform(X_test[num_features])
 
+##################################  FUNCTIONS FOR EVALUATION
+
+def eval_Performance(y_eval, X_eval, clf, clf_name = 'My Classifier'):
+
+    y_pred = clf.predict(X_eval)
+    y_pred_proba = clf.predict_proba(X_eval)[:, 1]
+    tn, fp, fn, tp = confusion_matrix(y_eval, y_pred).ravel()
+
+    # Evaluation
+    accuracy  = accuracy_score(y_eval, y_pred)
+    precision = precision_score(y_eval, y_pred)
+    recall    = recall_score(y_eval, y_pred)
+    f1        = f1_score(y_eval, y_pred)
+    fp_rates, tp_rates, _ = roc_curve(y_eval, y_pred_proba)
+
+    #Area under the roc curve
+    roc_auc = auc(fp_rates, tp_rates)
+
+    return tp,fp,tn,fn,accuracy, precision, recall, f1, roc_auc
+df_performance = pd.DataFrame(columns = ['tp','fp','tn','fn','accuracy', 'precision', 'recall', 'f1', 'roc_auc'] )
 
 ################ Random Forest Model ####################################################
 
 Random_Forest = RandomForestClassifier(class_weight="balanced",random_state=42)
 Random_Forest.fit(X_train, y_train)
+
+df_performance.loc['RF (test)',:] = eval_Performance(y_test, X_test, Random_Forest, clf_name ='RF')
+df_performance.loc['RF (train)',:] = eval_Performance(y_train, X_train, Random_Forest, clf_name ='RF (train)')
+
+print(df_performance)
 
 
 y_pred = Random_Forest.predict(X_test)
