@@ -1,12 +1,9 @@
-import matplotlib.pyplot as plt
+
 import pandas as pd
-import numpy as np
-from sklearn.metrics import roc_curve, confusion_matrix, auc
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.impute import KNNImputer
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split
+
 
 
 df = pd.read_csv("data/kzp-2008-2020-timeseries.csv", encoding="latin-1")
@@ -26,7 +23,7 @@ data["JAHR"] = data["JAHR"].astype("object")
 #New data declaration
 data = data[features + [label] + ["JAHR"]]
 
-print("New data set shape:", data.shape)
+#print("New data set shape:", data.shape)
 
 #DROPPING COLUMNS
 #Dropping Adr
@@ -59,8 +56,7 @@ data = data.dropna(subset=['FiErg'])
 data[label] = data[label].apply(lambda x: 0 if x < 0 else 1)
 
 
-print('Shape of modified data set;', data.shape)
+#print('Shape of modified data set;', data.shape)
 
-#LABEL BALANCE CHECK
-print(data[label].value_counts(normalize=True))
+
 

@@ -1,5 +1,4 @@
 from sklearn.model_selection import train_test_split
-#from Data_Preparation import *
 from Data_Preparation import data, features, label, cat_features, num_features
 from sklearn.preprocessing import StandardScaler
 import pandas as pd
@@ -64,7 +63,7 @@ if encoding == "OHE":
     X_test = X_test.reindex(columns=X_train.columns, fill_value=0)
 """
 
-########################## ALTERNATIVE ##########################################################
+########################## TARGET ENCODING  ##########################################################
 
 def target_encode_feature(train_series, test_series, target, n_splits=5, alpha=5):
     # Initialize KFold
@@ -485,9 +484,10 @@ plt.show()
 
 
 #df performance output for report
+"""
 pd.set_option('display.float_format', '{:.3f}'.format)
 print(df_performance)
 pd.reset_option('display.float_format')
-
+"""
 
 
