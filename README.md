@@ -4,6 +4,10 @@ DISCLAIMER
 
 The SVC file will take a while to run.
 
+PYTHON VERSION
+
+3.12.7
+
 USED PACKAGES (pip list)
 
 Package           Version
