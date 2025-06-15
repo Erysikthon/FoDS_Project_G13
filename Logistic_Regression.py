@@ -6,17 +6,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import confusion_matrix
-from sklearn import svm
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from sklearn.metrics import roc_curve, auc
 from sklearn.model_selection import GridSearchCV, cross_val_score
 import seaborn as sns
 from sklearn.feature_selection import SelectKBest, f_classif
-from sklearn.feature_selection import RFE
 from sklearn.feature_selection import RFECV
 import os
 from sklearn.model_selection import KFold
-from sklearn.impute import KNNImputer
+
+
 
 
 
