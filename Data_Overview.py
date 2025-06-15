@@ -137,7 +137,7 @@ print(f"Missing Data Percentage (new data): {missing_percentage:.2f}%")
 #LABEL BALANCE CHECK
 print("Label balance:", data[label].value_counts(normalize=True))
 
-
+print("New data set shape:", data.shape)
 
 
 #################################### Correlations  ###########################################################
