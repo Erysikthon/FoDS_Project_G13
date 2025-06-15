@@ -1,10 +1,16 @@
 from sklearn.ensemble import RandomForestClassifier
-import seaborn as sns
 from sklearn.metrics import classification_report
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.metrics import roc_curve, auc
 from Data_Preparation import *
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import confusion_matrix
+
 
 
 ####################### SPLITTING DATA ####################################################
