@@ -1,6 +1,3 @@
-from sklearn.model_selection import train_test_split
-from Data_Preparation import data, features, label, cat_features, num_features
-from sklearn.preprocessing import StandardScaler
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -14,7 +11,9 @@ from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.feature_selection import RFECV
 import os
 from sklearn.model_selection import KFold
-
+from sklearn.model_selection import train_test_split
+from Data_Preparation import data, features, label, cat_features, num_features
+from sklearn.preprocessing import StandardScaler
 
 
 
