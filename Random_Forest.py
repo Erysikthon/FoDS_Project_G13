@@ -291,5 +291,10 @@ plt.show()
 plt.savefig('output/RF_Confusion_Matrix.png')
 """
 
+#output for report
+
+pd.set_option('display.float_format', '{:.3f}'.format)
+print(df_performance)
+pd.reset_option('display.float_format')
 
 
